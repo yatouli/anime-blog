@@ -1,0 +1,26 @@
+[
+  {
+    "id": "friend-1",
+    "name": "奈奈子的日记",
+    "url": "https://example.com",
+    "avatar": "https://api.dicebear.com/7.x/thumbs/svg?seed=nana",
+    "desc": "记录日常与手帐，偶尔发发照片～",
+    "createdAt": "2026-08-01T10:00:00.000Z"
+  },
+  {
+    "id": "friend-2",
+    "name": "代码喵",
+    "url": "https://example.com",
+    "avatar": "https://api.dicebear.com/7.x/thumbs/svg?seed=cat",
+    "desc": "前端开发 + 猫咪，欢迎交流技术。",
+    "createdAt": "2026-08-05T10:00:00.000Z"
+  },
+  {
+    "id": "friend-3",
+    "name": "二次元研究所",
+    "url": "https://example.com",
+    "avatar": "https://api.dicebear.com/7.x/thumbs/svg?seed=lab",
+    "desc": "新番评测 / 手办 / 谷子分享。",
+    "createdAt": "2026-08-10T10:00:00.000Z"
+  }
+]

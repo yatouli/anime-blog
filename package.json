@@ -1,0 +1,27 @@
+{
+  "name": "anime-blog",
+  "version": "1.0.0",
+  "private": true,
+  "description": "二次元风格个人博客：毛玻璃主题 / 昼夜模式 / 在线音乐 / 友链 / 图片墙 / 后台编辑器",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@uiw/react-md-editor": "^4.0.5",
+    "next": "^15.3.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "typescript": "^5.8.3"
+  }
+}
