@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Clock from "@/components/Clock";
 import PostCard from "@/components/PostCard";
 import TypingText from "@/components/TypingText";
 import { getPosts } from "@/lib/store";
@@ -34,6 +35,9 @@ export default function Home() {
           <Link href="/gallery" className="btn">
             🖼️ 逛逛图片墙
           </Link>
+        </div>
+        <div className="hero-clock">
+          <Clock variant="greeting" />
         </div>
       </section>
 

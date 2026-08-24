@@ -2514,3 +2514,40 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============ 时钟 ============ */
+.clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--glass-bg-strong);
+  font-size: 13px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.clock-greeting {
+  display: inline-block;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.hero-clock {
+  margin-top: 22px;
+  animation: hero-rise 0.7s ease 2.1s both;
+}
+
+/* 小屏：隐藏导航时钟（省空间），保留首页问候 */
+@media (max-width: 860px) {
+  .nav-actions .clock {
+    display: none;
+  }
+}

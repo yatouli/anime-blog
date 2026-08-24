@@ -1,7 +1,7 @@
 {
-  "backgroundType": "gradient",
+  "backgroundType": "image",
   "gradient": "",
-  "image": "",
-  "blur": 0,
-  "overlay": 0
+  "image": "/api/files/1787575435689-0it0ed.jpg",
+  "blur": 8,
+  "overlay": 0.2
 }

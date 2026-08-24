@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { site } from "@/lib/site";
+import Clock from "./Clock";
 import ThemeToggle from "./ThemeToggle";
 
 const links = [
@@ -39,6 +40,7 @@ export default function Nav() {
       </nav>
 
       <div className="nav-actions">
+        <Clock variant="nav" />
         <Link href="/search" className="nav-search" title="搜索文章">
           🔍
         </Link>
