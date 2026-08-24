@@ -53,6 +53,19 @@ export interface CommentInput {
   content: string;
 }
 
+export interface SiteConfig {
+  /** 背景类型：gradient 渐变 / image 图片 */
+  backgroundType: "gradient" | "image";
+  /** 渐变背景（空字符串表示跟随主题默认） */
+  gradient: string;
+  /** 背景图片 URL（如 /api/files/xxx） */
+  image: string;
+  /** 背景图片模糊程度（px，0-40） */
+  blur: number;
+  /** 背景压暗程度（0-0.8，提升文字可读性） */
+  overlay: number;
+}
+
 export interface MusicSong {
   id: number;
   name: string;

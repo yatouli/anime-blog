@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Background from "@/components/Background";
 import IntroCover from "@/components/IntroCover";
 import Nav from "@/components/Nav";
 import MusicPlayer from "@/components/MusicPlayer";
@@ -31,6 +32,8 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
+        <Background />
+
         {/* 背景层：渐变 + 光斑 + 花瓣 */}
         <div className="bg" aria-hidden>
           <div className="orb orb-1" />

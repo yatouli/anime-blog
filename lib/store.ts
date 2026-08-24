@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import { DEFAULT_CONFIG } from "./config";
 import type {
   Comment,
   CommentInput,
@@ -8,12 +9,14 @@ import type {
   FriendInput,
   Post,
   PostInput,
+  SiteConfig,
 } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const POSTS_FILE = path.join(DATA_DIR, "posts.json");
 const FRIENDS_FILE = path.join(DATA_DIR, "friends.json");
 const COMMENTS_FILE = path.join(DATA_DIR, "comments.json");
+const CONFIG_FILE = path.join(DATA_DIR, "config.json");
 
 function readJson<T>(file: string, fallback: T): T {
   try {
@@ -178,4 +181,23 @@ export function addComment(input: CommentInput): Comment {
   comments.push(comment);
   writeJson(COMMENTS_FILE, comments);
   return comment;
+}
+
+/* ---------------- Site Config ---------------- */
+
+export function getConfig(): SiteConfig {
+  const saved = readJson<Partial<SiteConfig>>(CONFIG_FILE, {});
+  return { ...DEFAULT_CONFIG, ...saved };
+}
+
+export function saveConfig(input: Partial<SiteConfig>): SiteConfig {
+  const next: SiteConfig = {
+    ...getConfig(),
+    ...input,
+    backgroundType: input.backgroundType === "image" ? "image" : "gradient",
+    blur: Math.max(0, Math.min(40, Number(input.blur ?? 0) || 0)),
+    overlay: Math.max(0, Math.min(0.8, Number(input.overlay ?? 0) || 0)),
+  };
+  writeJson(CONFIG_FILE, next);
+  return next;
 }

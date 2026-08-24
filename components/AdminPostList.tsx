@@ -43,9 +43,14 @@ export default function AdminPostList() {
     <div className="admin-panel">
       <div className="admin-head">
         <h2>📝 文章管理</h2>
-        <Link href="/admin/edit/new" className="btn">
-          ＋ 写新文章
-        </Link>
+        <div className="editor-head-actions">
+          <Link href="/admin/settings" className="btn">
+            🎨 站点设置
+          </Link>
+          <Link href="/admin/edit/new" className="btn primary">
+            ＋ 写新文章
+          </Link>
+        </div>
       </div>
       {msg && <div className="admin-msg">{msg}</div>}
       <div className="admin-post-list">
