@@ -1,0 +1,8 @@
+name = "anime-blog-proxy"
+main = "worker.js"
+compatibility_date = "2025-07-01"
+
+# 路由：blog.xiaogao.dpdns.org 的请求都交给这个 Worker
+routes = [
+  { pattern = "blog.xiaogao.dpdns.org/*", zone_name = "xiaogao.dpdns.org" }
+]
