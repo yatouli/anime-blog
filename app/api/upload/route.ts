@@ -7,21 +7,9 @@ import { AUTH_COOKIE, verifyToken } from "@/lib/auth";
 // 支持格式：jpg / png / webp（另兼容 jpeg、gif、svg）
 const ALLOWED = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg"]);
 
-/** 尝试从 Cloudflare R2 获取 bucket（非 CF 环境返回 null） */
-async function getR2Bucket(): Promise<{ put: (k: string, v: ArrayBuffer, m?: object) => Promise<unknown> } | null> {
-  try {
-    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
-    const { env } = getCloudflareContext();
-    if (env?.BLOG_UPLOADS?.put) return env.BLOG_UPLOADS;
-    return null;
-  } catch {
-    return null;
-  }
-}
-
 /**
  * 图片上传（封面 / 图片墙 / 背景 / 头像），无大小限制。
- * - Cloudflare Workers：写入 R2（BLOG_UPLOADS bucket），经 /api/files/<name> 读取
+ * - Vercel：设置 BLOB_READ_WRITE_TOKEN 后写入 Vercel Blob（对象存储，持久）
  * - 本地/自建服务器：保存到 data/uploads/，经 /api/files/<name> 动态提供
  */
 export async function POST(req: Request) {
@@ -43,13 +31,14 @@ export async function POST(req: Request) {
 
   const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
-  // —— Cloudflare R2 模式（Workers 部署）——
-  const r2 = await getR2Bucket();
-  if (r2) {
-    await r2.put(name, await file.arrayBuffer(), {
-      httpMetadata: { contentType: file.type || "application/octet-stream" },
+  // —— Vercel Blob 模式（对象存储，serverless 可持久）——
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const { put } = await import("@vercel/blob");
+    const blob = await put(`uploads/${name}`, file, {
+      access: "public",
+      contentType: file.type || undefined,
     });
-    return NextResponse.json({ url: `/api/files/${name}` }, { status: 201 });
+    return NextResponse.json({ url: blob.url }, { status: 201 });
   }
 
   // —— 本地文件模式 ——
