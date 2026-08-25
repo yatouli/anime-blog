@@ -5,6 +5,7 @@ import CommentSection from "@/components/CommentSection";
 import MarkdownView from "@/components/MarkdownView";
 import PostCard from "@/components/PostCard";
 import TocView from "@/components/TocView";
+import ViewCounter from "@/components/ViewCounter";
 import { getPostBySlug, getPosts } from "@/lib/store";
 import { extractHeadings } from "@/lib/toc";
 
@@ -58,6 +59,7 @@ export default async function PostPage({
 
           <div className="post-detail-meta">
             <span>📅 {post.date}</span>
+            <ViewCounter postId={post.id} initialViews={post.views} />
             <span>
               {post.tags.map((t) => (
                 <span key={t} className="tag">

@@ -34,7 +34,8 @@ CREATE TABLE IF NOT EXISTS posts (
   coverGradient TEXT NOT NULL DEFAULT '',
   coverImage TEXT,
   excerpt TEXT NOT NULL DEFAULT '',
-  content TEXT NOT NULL DEFAULT ''
+  content TEXT NOT NULL DEFAULT '',
+  views INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(date);
 CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);
@@ -136,6 +137,15 @@ async function seedFromJson(): Promise<void> {
 
 let initPromise: Promise<void> | null = null;
 
+/** 轻量迁移：给旧库补充缺失的列（不重建表） */
+async function migrate(): Promise<void> {
+  const info = await db.execute(`PRAGMA table_info(posts)`);
+  const cols = info.rows.map((r) => String(r.name));
+  if (!cols.includes("views")) {
+    await db.execute(`ALTER TABLE posts ADD COLUMN views INTEGER NOT NULL DEFAULT 0`);
+  }
+}
+
 /**
  * 确保数据库已建表并完成种子导入（进程内只执行一次）。
  * 所有 store 操作前调用；本地与 Vercel 冷启动都会自动完成。
@@ -144,6 +154,7 @@ export function ensureDb(): Promise<void> {
   if (!initPromise) {
     initPromise = (async () => {
       await db.executeMultiple(SCHEMA);
+      await migrate();
       const res = await db.execute(`SELECT COUNT(*) AS n FROM config`);
       const n = Number(res.rows[0]?.n ?? 0);
       if (n === 0) {

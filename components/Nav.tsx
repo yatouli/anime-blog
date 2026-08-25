@@ -10,6 +10,7 @@ import ThemeToggle from "./ThemeToggle";
 const links = [
   { href: "/", label: "首页" },
   { href: "/posts", label: "文章" },
+  { href: "/tags", label: "标签" },
   { href: "/gallery", label: "图片墙" },
   { href: "/friends", label: "友链" },
   { href: "/about", label: "关于" },

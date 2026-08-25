@@ -1,9 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Background from "@/components/Background";
+import BackToTop from "@/components/BackToTop";
 import IntroCover from "@/components/IntroCover";
 import Nav from "@/components/Nav";
 import MusicPlayer from "@/components/MusicPlayer";
+import PwaRegister from "@/components/PwaRegister";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -12,11 +14,22 @@ export const metadata: Metadata = {
     template: `%s · ${site.name}`,
   },
   description: site.description,
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+  },
   alternates: {
     types: {
       "application/rss+xml": "/rss.xml",
     },
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ff7ab8",
+  width: "device-width",
+  initialScale: 1,
 };
 
 const themeScript = `(function(){try{var t=localStorage.getItem('blog-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`;
@@ -33,6 +46,7 @@ export default function RootLayout({
       </head>
       <body>
         <Background />
+        <PwaRegister />
 
         {/* 背景层：渐变 + 光斑 + 花瓣 */}
         <div className="bg" aria-hidden>
@@ -62,6 +76,7 @@ export default function RootLayout({
         </footer>
 
         <MusicPlayer />
+        <BackToTop />
       </body>
     </html>
   );

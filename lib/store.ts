@@ -40,6 +40,7 @@ interface RawRow {
   coverImage: string | null;
   excerpt: string;
   content: string;
+  views: number;
 }
 
 function toPost(r: RawRow): Post {
@@ -54,6 +55,7 @@ function toPost(r: RawRow): Post {
     coverImage: r.coverImage || undefined,
     excerpt: r.excerpt,
     content: r.content,
+    views: Number(r.views ?? 0),
   };
 }
 
@@ -104,11 +106,12 @@ export async function createPost(input: PostInput): Promise<Post> {
       input.content.replace(/[#>*`_\-\[\]()!]/g, "").trim().slice(0, 120) ||
       "（暂无摘要）",
     content: input.content,
+    views: 0,
   };
   await db.execute({
     sql: `INSERT INTO posts
-      (id, slug, title, tags, date, coverEmoji, coverGradient, coverImage, excerpt, content)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (id, slug, title, tags, date, coverEmoji, coverGradient, coverImage, excerpt, content, views)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
     args: [
       post.id,
       post.slug,
@@ -165,6 +168,14 @@ export async function deletePost(id: string): Promise<boolean> {
   await ensureDb();
   const res = await db.execute({ sql: `DELETE FROM posts WHERE id = ?`, args: [id] });
   return Number(res.rowsAffected) > 0;
+}
+
+export async function incrementViews(id: string): Promise<void> {
+  await ensureDb();
+  await db.execute({
+    sql: `UPDATE posts SET views = views + 1 WHERE id = ?`,
+    args: [id],
+  });
 }
 
 async function uniqueSlug(slug: string, exceptId?: string): Promise<string> {

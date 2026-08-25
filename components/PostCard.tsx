@@ -22,6 +22,7 @@ export default function PostCard({ post }: { post: Post }) {
         <p className="post-excerpt">{post.excerpt}</p>
         <div className="post-meta">
           <span className="post-date">📅 {post.date}</span>
+          <span className="post-views">👁 {post.views}</span>
           <span className="post-tags">
             {post.tags.map((t) => (
               <span key={t} className="tag">

@@ -9,6 +9,7 @@ export interface Post {
   coverImage?: string; // 上传的自定义封面图片
   excerpt: string;
   content: string; // markdown
+  views: number; // 阅读量
 }
 
 export interface PostInput {
