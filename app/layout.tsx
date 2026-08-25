@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Background from "@/components/Background";
 import BackToTop from "@/components/BackToTop";
+import ImageLightbox from "@/components/ImageLightbox";
 import IntroCover from "@/components/IntroCover";
 import Nav from "@/components/Nav";
 import MusicPlayer from "@/components/MusicPlayer";
@@ -78,6 +79,7 @@ export default function RootLayout({
 
         <MusicPlayer />
         <BackToTop />
+        <ImageLightbox />
       </body>
     </html>
   );
