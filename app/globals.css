@@ -3183,3 +3183,56 @@ img {
   max-width: 100%;
   height: auto;
 }
+
+/* ============ 点击动画 ============ */
+.click-ring,
+.click-emoji {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.click-ring {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 122, 184, 0.85);
+  box-shadow: 0 0 12px rgba(255, 122, 184, 0.35) inset;
+  animation: click-ring-anim 0.65s ease-out forwards;
+}
+
+@keyframes click-ring-anim {
+  from {
+    transform: scale(0.15);
+    opacity: 0.95;
+  }
+  to {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+.click-emoji {
+  font-size: 18px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  animation: click-emoji-anim 0.95s ease-out forwards;
+}
+
+@keyframes click-emoji-anim {
+  0% {
+    transform: translateY(0) rotate(-8deg) scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-64px) rotate(22deg) scale(1.25);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .click-ring,
+  .click-emoji {
+    display: none;
+  }
+}
