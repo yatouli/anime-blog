@@ -2619,14 +2619,16 @@ button {
 }
 
 /* ============ 自定义头像 ============ */
+/* 尺寸由容器类控制（如 .hero-avatar / .intro-cover-avatar / .nav-logo-emoji），
+   这里只负责裁剪、圆角与占位背景，避免 width:100% 覆盖容器尺寸导致头像巨大 */
 .avatar-img {
   display: block;
-  width: 100%;
-  height: 100%;
   object-fit: cover;
   border-radius: inherit;
+  background: var(--glass-bg-strong);
 }
 
+/* 导航头像：无容器尺寸，需显式指定 */
 .nav-logo-emoji.avatar-img {
   width: 28px;
   height: 28px;
