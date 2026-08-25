@@ -1,27 +1,70 @@
-import { createClient, type Client } from "@libsql/client";
+import { DatabaseSync } from "node:sqlite";
+import { createClient as createWebClient } from "@libsql/client/web";
 import fs from "fs";
 import path from "path";
 
 /**
  * 数据库连接：
- * - 本地/自建服务器：DATABASE_URL 缺省为 file:data/blog.db（SQLite 文件，与原来 JSON 一样本地存储）
- * - Vercel：设置 DATABASE_URL=libsql://... 与 TURSO_AUTH_TOKEN（Turso 托管 libSQL，SQLite 兼容）
+ * - 本地/自建服务器：DATABASE_URL 缺省为 file:data/blog.db，用 Node 内置 SQLite（node:sqlite，零依赖）
+ * - Cloudflare Workers / serverless：DATABASE_URL=libsql://... + TURSO_AUTH_TOKEN（Turso）
+ *   远程用 @libsql/client/web（纯 HTTP，Workers 兼容）
  */
+
+interface Row {
+  [key: string]: unknown;
+}
+
+interface ExecResult {
+  rows: Row[];
+  rowsAffected?: number;
+}
+
+export interface DbLike {
+  execute(q: string | { sql: string; args?: unknown[] }): Promise<ExecResult>;
+  executeMultiple(sql: string): Promise<void>;
+}
+
 const DATABASE_URL = process.env.DATABASE_URL || "file:data/blog.db";
 const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
+const isLocalFile = DATABASE_URL.startsWith("file:");
 
-export const db: Client = createClient({
-  url: DATABASE_URL,
-  authToken: TURSO_AUTH_TOKEN || undefined,
-});
+/** 本地 SQLite 适配器（node:sqlite），提供与 libsql client 兼容的 execute 接口 */
+function createLocalDb(filePath: string): DbLike {
+  // 确保 data 目录存在
+  fs.mkdirSync(path.dirname(path.resolve(filePath)), { recursive: true });
+  const sqlite = new DatabaseSync(filePath);
 
-// 本地文件模式：确保 data 目录存在
-if (DATABASE_URL.startsWith("file:")) {
-  const file = DATABASE_URL.replace(/^file:/, "").split("?")[0];
-  if (file) {
-    fs.mkdirSync(path.dirname(path.resolve(file)), { recursive: true });
-  }
+  return {
+    async execute(q) {
+      if (typeof q === "string") {
+        const stmt = sqlite.prepare(q);
+        return { rows: stmt.all() as unknown as Row[] };
+      }
+      const stmt = sqlite.prepare(q.sql);
+      const args = (q.args ?? []) as never[];
+      const upper = q.sql.trimStart().toUpperCase();
+      if (upper.startsWith("SELECT") || upper.startsWith("PRAGMA") || upper.startsWith("WITH")) {
+        return { rows: stmt.all(...args) as unknown as Row[] };
+      }
+      const res = stmt.run(...args);
+      return { rows: [], rowsAffected: Number(res.changes ?? 0) };
+    },
+    async executeMultiple(sql) {
+      sqlite.exec(sql);
+    },
+  };
 }
+
+/**
+ * 数据库客户端：本地 file: 用内置 SQLite；远程 libsql:// 用 @libsql/client/web
+ * （转成 https://，web 客户端走 HTTP，Workers 兼容；条件分支避免创建不支持的客户端）
+ */
+export const db: DbLike = isLocalFile
+  ? createLocalDb(DATABASE_URL.replace(/^file:/, "").split("?")[0])
+  : (createWebClient({
+      url: DATABASE_URL.replace(/^libsql:\/\//, "https://"),
+      authToken: TURSO_AUTH_TOKEN || undefined,
+    }) as unknown as DbLike);
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS posts (
@@ -91,8 +134,8 @@ async function seedFromJson(): Promise<void> {
     for (const p of posts) {
       await db.execute({
         sql: `INSERT OR IGNORE INTO posts
-          (id, slug, title, tags, date, coverEmoji, coverGradient, coverImage, excerpt, content)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (id, slug, title, tags, date, coverEmoji, coverGradient, coverImage, excerpt, content, views)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
         args: [
           String(p.id),
           String(p.slug),
@@ -148,7 +191,7 @@ async function migrate(): Promise<void> {
 
 /**
  * 确保数据库已建表并完成种子导入（进程内只执行一次）。
- * 所有 store 操作前调用；本地与 Vercel 冷启动都会自动完成。
+ * 所有 store 操作前调用；本地与 serverless 冷启动都会自动完成。
  */
 export function ensureDb(): Promise<void> {
   if (!initPromise) {
