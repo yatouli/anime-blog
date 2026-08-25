@@ -3236,3 +3236,172 @@ img {
     display: none;
   }
 }
+
+/* ============ 桌宠 ============ */
+.pet-wrap {
+  position: fixed;
+  z-index: 96;
+  width: 64px;
+  height: 64px;
+  touch-action: none;
+}
+
+.pet {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: var(--glass-shadow);
+  display: grid;
+  place-items: center;
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pet:hover {
+  transform: scale(1.08);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
+}
+
+.pet:active {
+  cursor: grabbing;
+}
+
+.pet-emoji {
+  font-size: 34px;
+  line-height: 1;
+  animation: pet-float 3s ease-in-out infinite;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes pet-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.pet-emoji.blink {
+  animation: none;
+  transform: scaleY(0.12);
+  transition: transform 0.1s ease;
+}
+
+.pet.wobble {
+  animation: pet-wobble 0.5s ease;
+}
+
+@keyframes pet-wobble {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-12deg); }
+  75% { transform: rotate(10deg); }
+}
+
+.pet-bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 130px;
+  max-width: 220px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.6;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: pet-bubble-in 0.25s ease;
+}
+
+.pet-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: var(--glass-border);
+}
+
+@keyframes pet-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.pet-hide {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 92, 122, 0.9);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.pet-wrap:hover .pet-hide {
+  opacity: 1;
+}
+
+.pet-show {
+  position: fixed;
+  right: 20px;
+  bottom: 120px;
+  z-index: 96;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--glass-shadow);
+  font-size: 22px;
+  cursor: pointer;
+  animation: pet-float 3s ease-in-out infinite;
+}
+
+@media (max-width: 560px) {
+  .pet-show {
+    right: 12px;
+    bottom: 130px;
+    width: 40px;
+    height: 40px;
+    font-size: 19px;
+  }
+
+  .pet-bubble {
+    min-width: 110px;
+    max-width: 180px;
+    font-size: 12px;
+  }
+}
