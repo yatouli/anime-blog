@@ -212,6 +212,19 @@ export function saveConfig(input: Partial<SiteConfig>): SiteConfig {
   if (merged.avatar !== undefined) {
     next.avatar = merged.avatar.trim().slice(0, 500);
   }
+  if (merged.gallery !== undefined) {
+    // 校验图片墙：仅保留 src 非空的条目，限制数量与字段长度
+    const list = Array.isArray(merged.gallery) ? merged.gallery : [];
+    next.gallery = list
+      .filter((it) => it && typeof it.src === "string" && it.src.trim())
+      .slice(0, 100)
+      .map((it) => ({
+        src: it.src.trim().slice(0, 500),
+        title: (it.title || "").toString().trim().slice(0, 50) || "未命名",
+        w: Math.max(1, Math.min(8, Number(it.w) || 3)),
+        h: Math.max(1, Math.min(8, Number(it.h) || 4)),
+      }));
+  }
   writeJson(CONFIG_FILE, next);
   return next;
 }

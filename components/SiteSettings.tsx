@@ -1,17 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { applyConfig, bgGradients, setConfig } from "@/lib/config";
-import type { SiteConfig } from "@/lib/types";
+import { applyConfig, bgGradients, DEFAULT_CONFIG, setConfig } from "@/lib/config";
+import type { SiteConfig, WallItem } from "@/lib/types";
 
-/** 站点设置：背景类型 / 渐变 / 图片 / 模糊 / 压暗 / 头像，改动即时预览 */
+/** 站点设置：背景 / 模糊 / 压暗 / 头像 / 图片墙，改动即时预览 */
 export default function SiteSettings() {
   const [cfg, setCfg] = useState<SiteConfig | null>(null);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState("");
-  const [uploading, setUploading] = useState<"bg" | "avatar" | null>(null);
+  const [uploading, setUploading] = useState<"bg" | "avatar" | "gallery" | null>(null);
   const bgFileRef = useRef<HTMLInputElement>(null);
   const avatarFileRef = useRef<HTMLInputElement>(null);
+  const galleryFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch("/api/config")
@@ -74,6 +75,43 @@ export default function SiteSettings() {
     }
   };
 
+  /** 读取图片真实尺寸，用于图片墙的比例元数据 */
+  const getDims = (url: string) =>
+    new Promise<{ w: number; h: number }>((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({ w: img.naturalWidth || 3, h: img.naturalHeight || 4 });
+      img.onerror = () => resolve({ w: 3, h: 4 });
+      img.src = url;
+    });
+
+  const onUploadGallery = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (!files.length || !cfg) return;
+    setUploading("gallery");
+    setErr("");
+    try {
+      const added: WallItem[] = [];
+      for (const file of files) {
+        const url = await uploadImage(file);
+        const { w, h } = await getDims(url);
+        const title = file.name.replace(/\.[^.]+$/, "") || "未命名";
+        added.push({ src: url, title, w, h });
+      }
+      preview({ ...cfg, gallery: [...cfg.gallery, ...added].slice(0, 100) });
+    } catch (ex) {
+      setErr(ex instanceof Error ? ex.message : "上传失败");
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  const removeGalleryItem = (idx: number) => {
+    if (!cfg) return;
+    const next = cfg.gallery.filter((_, i) => i !== idx);
+    preview({ ...cfg, gallery: next });
+  };
+
   const save = async () => {
     if (!cfg) return;
     setSaved(false);
@@ -102,6 +140,7 @@ export default function SiteSettings() {
       blur: 0,
       overlay: 0,
       avatar: "",
+      gallery: [...DEFAULT_CONFIG.gallery],
     };
     preview(def);
   };
@@ -307,6 +346,63 @@ export default function SiteSettings() {
             onChange={(e) => void onUploadAvatar(e)}
             style={{ display: "none" }}
           />
+        </section>
+
+        {/* 图片墙 */}
+        <section className="glass settings-card avatar-card">
+          <div className="gallery-settings-head">
+            <h3>🖼️ 图片墙</h3>
+            <div className="cover-upload-actions">
+              <button
+                className="btn small"
+                onClick={() => galleryFileRef.current?.click()}
+                disabled={uploading === "gallery"}
+              >
+                {uploading === "gallery" ? "上传中…" : "＋ 上传图片（可多选）"}
+              </button>
+              <button
+                className="btn small"
+                onClick={() => preview({ ...cfg, gallery: [...DEFAULT_CONFIG.gallery] })}
+              >
+                恢复默认壁纸
+              </button>
+            </div>
+          </div>
+          <p className="settings-hint">
+            支持 jpg / png / webp（含 gif / svg），无大小限制；上传后自动出现在「图片墙」页面。
+          </p>
+          <input
+            ref={galleryFileRef}
+            type="file"
+            multiple
+            accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
+            onChange={(e) => void onUploadGallery(e)}
+            style={{ display: "none" }}
+          />
+          {cfg.gallery.length > 0 ? (
+            <div className="gallery-manage-grid">
+              {cfg.gallery.map((it, i) => (
+                <div key={`${it.src}-${i}`} className="gallery-manage-item">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={it.src} alt={it.title} />
+                  <div className="gallery-manage-info">
+                    <span className="gallery-manage-title" title={it.title}>
+                      {it.title}
+                    </span>
+                    <button
+                      className="gallery-manage-del"
+                      onClick={() => removeGalleryItem(i)}
+                      title="从图片墙移除"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="settings-hint">图片墙为空，点上方按钮上传吧～</p>
+          )}
         </section>
       </div>
     </div>

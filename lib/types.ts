@@ -66,6 +66,8 @@ export interface SiteConfig {
   overlay: number;
   /** 自定义头像图片 URL（空字符串表示使用 lib/site.ts 的 emoji 头像） */
   avatar: string;
+  /** 图片墙：默认为内置壁纸，可在后台增删自定义图片 */
+  gallery: WallItem[];
 }
 
 export interface MusicSong {

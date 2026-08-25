@@ -4,5 +4,55 @@
   "image": "/api/files/1787575435689-0it0ed.jpg",
   "blur": 8,
   "overlay": 0.2,
-  "avatar": ""
+  "avatar": "",
+  "gallery": [
+    {
+      "src": "/wall/wall-0.svg",
+      "title": "月色星空",
+      "w": 3,
+      "h": 4
+    },
+    {
+      "src": "/wall/wall-1.svg",
+      "title": "樱花雨",
+      "w": 4,
+      "h": 3
+    },
+    {
+      "src": "/wall/wall-2.svg",
+      "title": "暮色之城",
+      "w": 3,
+      "h": 3
+    },
+    {
+      "src": "/wall/wall-3.svg",
+      "title": "深海梦境",
+      "w": 4,
+      "h": 3
+    },
+    {
+      "src": "/wall/wall-4.svg",
+      "title": "朝阳",
+      "w": 3,
+      "h": 4
+    },
+    {
+      "src": "/wall/wall-5.svg",
+      "title": "极光之夜",
+      "w": 4,
+      "h": 3
+    },
+    {
+      "src": "/wall/wall-6.svg",
+      "title": "糖果云",
+      "w": 3,
+      "h": 3
+    },
+    {
+      "src": "/wall/wall-7.svg",
+      "title": "星轨",
+      "w": 4,
+      "h": 4
+    }
+  ]
 }

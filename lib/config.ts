@@ -1,3 +1,4 @@
+import { gallery } from "./site";
 import type { SiteConfig } from "./types";
 
 /** 默认站点配置：渐变跟随主题，无图片，模糊 0，不压暗，emoji 头像 */
@@ -8,6 +9,8 @@ export const DEFAULT_CONFIG: SiteConfig = {
   blur: 0,
   overlay: 0,
   avatar: "",
+  // 图片墙默认为内置壁纸（后台可增删自定义图片）
+  gallery,
 };
 
 /** 后台可选渐变预设 */
