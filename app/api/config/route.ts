@@ -20,6 +20,7 @@ export async function PUT(req: Request) {
     image: typeof body.image === "string" ? body.image : undefined,
     blur: typeof body.blur === "number" ? body.blur : undefined,
     overlay: typeof body.overlay === "number" ? body.overlay : undefined,
+    avatar: typeof body.avatar === "string" ? body.avatar : undefined,
   });
   return NextResponse.json({ config });
 }

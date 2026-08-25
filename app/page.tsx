@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Avatar from "@/components/Avatar";
 import Clock from "@/components/Clock";
 import PostCard from "@/components/PostCard";
 import TypingText from "@/components/TypingText";
@@ -15,7 +16,7 @@ export default function Home() {
       {/* Hero */}
       <section className="hero">
         <div className="hero-avatar-wrap">
-          <div className="hero-avatar glass">{site.avatar}</div>
+          <Avatar emoji={site.avatar} className="hero-avatar glass" alt={site.author} />
         </div>
         <h1 className="hero-title">{site.name}</h1>
         <p className="hero-slogan">

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { site } from "@/lib/site";
+import Avatar from "./Avatar";
 import Clock from "./Clock";
 import ThemeToggle from "./ThemeToggle";
 
@@ -23,7 +24,7 @@ export default function Nav() {
   return (
     <header className="nav glass">
       <Link href="/" className="nav-logo">
-        <span className="nav-logo-emoji">{site.avatar}</span>
+        <Avatar emoji={site.avatar} className="nav-logo-emoji" alt={site.name} />
         <span className="nav-logo-text">{site.name}</span>
       </Link>
 

@@ -2540,6 +2540,62 @@ button {
   color: var(--text-dim);
 }
 
+/* ============ 自定义头像 ============ */
+.avatar-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.nav-logo-emoji.avatar-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--glass-border);
+}
+
+.avatar-card {
+  grid-column: 1 / -1;
+}
+
+.avatar-setting {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.avatar-preview-img {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.avatar-preview-emoji {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 48px;
+  background: var(--glass-bg-strong);
+  border: 3px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.avatar-setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-width: 200px;
+}
+
 .hero-clock {
   margin-top: 22px;
   animation: hero-rise 0.7s ease 2.1s both;

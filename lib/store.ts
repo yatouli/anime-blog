@@ -191,13 +191,27 @@ export function getConfig(): SiteConfig {
 }
 
 export function saveConfig(input: Partial<SiteConfig>): SiteConfig {
+  // 只合并显式传入的字段：跳过 undefined，避免部分更新把其他配置清空
+  const merged = Object.fromEntries(
+    Object.entries(input).filter(([, v]) => v !== undefined)
+  ) as Partial<SiteConfig>;
   const next: SiteConfig = {
     ...getConfig(),
-    ...input,
-    backgroundType: input.backgroundType === "image" ? "image" : "gradient",
-    blur: Math.max(0, Math.min(40, Number(input.blur ?? 0) || 0)),
-    overlay: Math.max(0, Math.min(0.8, Number(input.overlay ?? 0) || 0)),
+    ...merged,
   };
+  // 仅对显式传入的字段做校验/钳制
+  if (merged.backgroundType !== undefined) {
+    next.backgroundType = merged.backgroundType === "image" ? "image" : "gradient";
+  }
+  if (merged.blur !== undefined) {
+    next.blur = Math.max(0, Math.min(40, Number(merged.blur) || 0));
+  }
+  if (merged.overlay !== undefined) {
+    next.overlay = Math.max(0, Math.min(0.8, Number(merged.overlay) || 0));
+  }
+  if (merged.avatar !== undefined) {
+    next.avatar = merged.avatar.trim().slice(0, 500);
+  }
   writeJson(CONFIG_FILE, next);
   return next;
 }

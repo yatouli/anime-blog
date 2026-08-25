@@ -1,12 +1,13 @@
 import type { SiteConfig } from "./types";
 
-/** 默认背景配置：渐变跟随主题，无图片，模糊 0，不压暗 */
+/** 默认站点配置：渐变跟随主题，无图片，模糊 0，不压暗，emoji 头像 */
 export const DEFAULT_CONFIG: SiteConfig = {
   backgroundType: "gradient",
   gradient: "",
   image: "",
   blur: 0,
   overlay: 0,
+  avatar: "",
 };
 
 /** 后台可选渐变预设 */
@@ -41,4 +42,29 @@ export function applyConfig(cfg: SiteConfig): void {
   } else if (!cfg.gradient) {
     el.style.removeProperty("--bg-grad");
   }
+}
+
+/* ============ 客户端配置共享存储 ============
+ * Background 组件拉取配置后写入这里，所有订阅组件（头像等）实时同步更新。
+ * 该模块不依赖浏览器 API，服务端也可安全引用。 */
+
+let currentConfig: SiteConfig | null = null;
+const listeners = new Set<(cfg: SiteConfig | null) => void>();
+
+export function getConfigSnapshot(): SiteConfig | null {
+  return currentConfig;
+}
+
+export function subscribeConfig(
+  listener: (cfg: SiteConfig | null) => void
+): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+export function setConfig(cfg: SiteConfig | null): void {
+  currentConfig = cfg;
+  listeners.forEach((fn) => fn(cfg));
 }

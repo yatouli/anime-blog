@@ -64,6 +64,8 @@ export interface SiteConfig {
   blur: number;
   /** 背景压暗程度（0-0.8，提升文字可读性） */
   overlay: number;
+  /** 自定义头像图片 URL（空字符串表示使用 lib/site.ts 的 emoji 头像） */
+  avatar: string;
 }
 
 export interface MusicSong {

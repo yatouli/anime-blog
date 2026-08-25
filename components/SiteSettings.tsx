@@ -1,16 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { applyConfig, bgGradients } from "@/lib/config";
+import { applyConfig, bgGradients, setConfig } from "@/lib/config";
 import type { SiteConfig } from "@/lib/types";
 
-/** 站点设置：背景类型 / 渐变 / 图片 / 模糊 / 压暗，改动即时预览 */
+/** 站点设置：背景类型 / 渐变 / 图片 / 模糊 / 压暗 / 头像，改动即时预览 */
 export default function SiteSettings() {
   const [cfg, setCfg] = useState<SiteConfig | null>(null);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState<"bg" | "avatar" | null>(null);
+  const bgFileRef = useRef<HTMLInputElement>(null);
+  const avatarFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch("/api/config")
@@ -19,6 +20,7 @@ export default function SiteSettings() {
         const c = d?.config as SiteConfig;
         if (c) {
           setCfg(c);
+          setConfig(c);
           applyConfig(c);
         }
       })
@@ -27,6 +29,7 @@ export default function SiteSettings() {
 
   const preview = useCallback((next: SiteConfig) => {
     setCfg(next);
+    setConfig(next);
     applyConfig(next);
   }, []);
 
@@ -39,11 +42,11 @@ export default function SiteSettings() {
     return data.url as string;
   };
 
-  const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onUploadBg = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !cfg) return;
-    setUploading(true);
+    setUploading("bg");
     setErr("");
     try {
       const url = await uploadImage(file);
@@ -51,7 +54,23 @@ export default function SiteSettings() {
     } catch (ex) {
       setErr(ex instanceof Error ? ex.message : "上传失败");
     } finally {
-      setUploading(false);
+      setUploading(null);
+    }
+  };
+
+  const onUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !cfg) return;
+    setUploading("avatar");
+    setErr("");
+    try {
+      const url = await uploadImage(file);
+      preview({ ...cfg, avatar: url });
+    } catch (ex) {
+      setErr(ex instanceof Error ? ex.message : "上传失败");
+    } finally {
+      setUploading(null);
     }
   };
 
@@ -82,6 +101,7 @@ export default function SiteSettings() {
       image: "",
       blur: 0,
       overlay: 0,
+      avatar: "",
     };
     preview(def);
   };
@@ -158,10 +178,10 @@ export default function SiteSettings() {
                   <div className="cover-upload-actions">
                     <button
                       className="btn small"
-                      onClick={() => fileRef.current?.click()}
-                      disabled={uploading}
+                      onClick={() => bgFileRef.current?.click()}
+                      disabled={uploading === "bg"}
                     >
-                      {uploading ? "上传中…" : "更换图片"}
+                      {uploading === "bg" ? "上传中…" : "更换图片"}
                     </button>
                     <button
                       className="btn small danger"
@@ -176,20 +196,20 @@ export default function SiteSettings() {
               ) : (
                 <button
                   className="btn small"
-                  onClick={() => fileRef.current?.click()}
-                  disabled={uploading}
+                  onClick={() => bgFileRef.current?.click()}
+                  disabled={uploading === "bg"}
                 >
-                  {uploading ? "上传中…" : "🖼 上传背景图片"}
+                  {uploading === "bg" ? "上传中…" : "🖼 上传背景图片"}
                 </button>
               )}
               <p className="settings-hint">
                 建议使用较宽的横图（如 1920×1080 壁纸），图片会铺满整个屏幕。
               </p>
               <input
-                ref={fileRef}
+                ref={bgFileRef}
                 type="file"
                 accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
-                onChange={(e) => void onUpload(e)}
+                onChange={(e) => void onUploadBg(e)}
                 style={{ display: "none" }}
               />
             </div>
@@ -243,6 +263,50 @@ export default function SiteSettings() {
             <br />
             小技巧：图片背景 + 模糊 8~15px + 压暗 20~35% 是最舒服的毛玻璃组合。
           </div>
+        </section>
+
+        {/* 头像 */}
+        <section className="glass settings-card avatar-card">
+          <h3>👤 头像</h3>
+          <div className="avatar-setting">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {cfg.avatar ? (
+              <img src={cfg.avatar} alt="头像预览" className="avatar-preview-img" />
+            ) : (
+              <span className="avatar-preview-emoji">🌸</span>
+            )}
+            <div className="avatar-setting-info">
+              <p className="settings-hint">
+                显示在导航栏、首页 Hero 和封面动画上。
+                <br />
+                上传图片后自动替换 emoji 头像。
+              </p>
+              <div className="cover-upload-actions">
+                <button
+                  className="btn small"
+                  onClick={() => avatarFileRef.current?.click()}
+                  disabled={uploading === "avatar"}
+                >
+                  {uploading === "avatar" ? "上传中…" : cfg.avatar ? "更换头像" : "🖼 上传头像"}
+                </button>
+                {cfg.avatar && (
+                  <button
+                    className="btn small danger"
+                    onClick={() => preview({ ...cfg, avatar: "" })}
+                  >
+                    恢复 emoji
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+          <input
+            ref={avatarFileRef}
+            type="file"
+            accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
+            onChange={(e) => void onUploadAvatar(e)}
+            style={{ display: "none" }}
+          />
         </section>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { site } from "@/lib/site";
+import Avatar from "./Avatar";
 import TypingText from "./TypingText";
 
 /**
@@ -35,7 +36,7 @@ export default function IntroCover() {
       aria-label="跳过封面动画"
     >
       <div className="intro-cover-inner">
-        <div className="intro-cover-avatar">{site.avatar}</div>
+        <Avatar emoji={site.avatar} className="intro-cover-avatar" alt={site.name} />
         <h1 className="intro-cover-name">{site.name}</h1>
         <p className="intro-cover-slogan">
           <TypingText text={site.slogan} speed={70} startDelay={500} />
