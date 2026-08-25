@@ -1711,10 +1711,88 @@ button {
 }
 
 /* ============ 响应式 ============ */
+/* 汉堡按钮（默认隐藏，移动端显示） */
+.nav-burger {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: var(--glass-bg-strong);
+}
+
+.nav-burger span {
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--text);
+  transition: all 0.25s ease;
+}
+
+.nav-burger.open span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.nav-burger.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-burger.open span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
 @media (max-width: 860px) {
+  .nav {
+    flex-wrap: nowrap;
+    padding: 10px 12px;
+  }
+
+  .nav-logo-text {
+    display: none; /* 手机上只保留头像，省空间 */
+  }
+
+  .nav-actions {
+    margin-left: auto;
+  }
+
+  .nav-burger {
+    display: flex; /* 显示汉堡按钮 */
+  }
+
+  /* 链接改为下拉面板：默认隐藏，点汉堡展开 */
   .nav-links {
-    order: 3;
-    width: 100%;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 10px;
+    margin: 0;
+    border-radius: 18px;
+    background: var(--glass-bg-strong);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    display: none;
+    z-index: 60;
+    animation: drawer-in 0.25s ease;
+  }
+
+  .nav.menu-open .nav-links {
+    display: flex;
+  }
+
+  .nav-link {
+    padding: 12px 16px; /* 大触摸目标 */
+    font-size: 15px;
+    text-align: center;
   }
 
   .music-player {
@@ -2772,5 +2850,282 @@ button {
     bottom: 110px;
     width: 42px;
     height: 42px;
+  }
+}
+
+/* ============ 手机端综合优化 ============ */
+
+/* 安全区适配（iPhone 底部手势条） */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .music-player {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 150px; /* 给底部播放器留出空间 */
+  }
+
+  /* 页面头 */
+  .page-head h1 {
+    font-size: 26px;
+  }
+
+  .page-head p {
+    font-size: 13.5px;
+    line-height: 1.7;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 30px 10px 16px;
+  }
+
+  .hero-avatar {
+    width: 88px;
+    height: 88px;
+    font-size: 44px;
+  }
+
+  .hero-title {
+    font-size: 30px;
+  }
+
+  .hero-slogan {
+    font-size: 15px;
+    padding: 0 8px;
+    line-height: 1.7;
+  }
+
+  .hero-clock .clock-greeting {
+    font-size: 12.5px;
+    padding: 6px 12px;
+  }
+
+  /* 文章卡片 */
+  .post-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .post-cover {
+    height: 130px;
+  }
+
+  .section-head h2 {
+    font-size: 20px;
+  }
+
+  /* 文章详情 */
+  .post-detail-cover {
+    height: 150px;
+    font-size: 60px;
+  }
+
+  .post-detail-inner {
+    padding: 18px 14px 6px;
+  }
+
+  .post-detail-title {
+    font-size: 22px;
+  }
+
+  .markdown-body {
+    font-size: 15px;
+    line-height: 1.8;
+  }
+
+  .markdown-body pre {
+    padding: 12px;
+    font-size: 13px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .markdown-body table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* 音乐播放器：紧凑布局 */
+  .music-player {
+    padding: 8px 10px;
+    gap: 6px;
+    border-radius: 18px;
+  }
+
+  .mp-cover {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  .mp-info {
+    flex: 1 1 80px;
+    min-width: 0;
+  }
+
+  .mp-title {
+    font-size: 13px;
+  }
+
+  .mp-artist {
+    font-size: 11px;
+  }
+
+  .mp-controls {
+    gap: 2px;
+  }
+
+  .mp-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
+
+  .mp-play {
+    width: 38px;
+    height: 38px;
+  }
+
+  .mp-progress {
+    order: 5;
+    width: 100%;
+    flex-basis: 100%;
+    margin-top: 2px;
+  }
+
+  .mp-drawer {
+    left: 8px;
+    right: 8px;
+    max-height: 50vh;
+  }
+
+  .mp-songs {
+    max-height: 40vh;
+  }
+
+  /* 图片墙 */
+  .gallery-wall.mosaic {
+    height: 380px;
+  }
+
+  .gallery-hint {
+    font-size: 12px;
+  }
+
+  .lightbox-nav.prev {
+    left: 10px;
+  }
+
+  .lightbox-nav.next {
+    right: 10px;
+  }
+
+  .lightbox-close {
+    top: 14px;
+    right: 14px;
+  }
+
+  /* 友链 */
+  .friend-card {
+    padding: 14px;
+  }
+
+  .friend-form {
+    padding: 16px;
+  }
+
+  /* 评论 */
+  .comments {
+    padding: 16px;
+  }
+
+  .comment-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .comment-head {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  /* 页脚 */
+  .footer {
+    margin-bottom: 86px;
+    padding: 12px 14px;
+    font-size: 12px;
+    border-radius: 16px;
+  }
+
+  /* 后台 */
+  .admin-post {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .admin-post-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .editor-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .editor-fields {
+    padding: 16px;
+  }
+
+  /* 打字机光标在手机上稍小 */
+  .typing-caret {
+    height: 1em;
+  }
+
+  /* 图片墙网格模式：手机上两列小图 */
+  .gallery-wall.grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  /* 封面入场动画：手机端紧凑 */
+  .intro-cover-avatar {
+    width: 84px;
+    height: 84px;
+    font-size: 44px;
+  }
+
+  .intro-cover-name {
+    font-size: 30px;
+  }
+
+  .intro-cover-slogan {
+    font-size: 13.5px;
+    line-height: 1.8;
+  }
+
+  /* 设置页滑块/预览 */
+  .settings-card {
+    padding: 16px;
+  }
+
+  .avatar-preview-img,
+  .avatar-preview-emoji {
+    width: 72px;
+    height: 72px;
   }
 }

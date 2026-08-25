@@ -30,6 +30,7 @@ export const viewport: Viewport = {
   themeColor: "#ff7ab8",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 const themeScript = `(function(){try{var t=localStorage.getItem('blog-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`;
