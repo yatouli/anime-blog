@@ -27,6 +27,12 @@ export default function MusicPlayer() {
   const [seekPreview, setSeekPreview] = useState<number | null>(null);
   const seekRef = useRef<{ dragging: boolean }>({ dragging: false });
 
+  // 播放状态同步到 <body>：背景光斑随音乐脉动
+  useEffect(() => {
+    document.body.classList.toggle("music-playing", playing);
+    return () => document.body.classList.remove("music-playing");
+  }, [playing]);
+
   const current = index >= 0 ? queue[index] : null;
 
   const loadAndPlay = useCallback(async (song: MusicSong) => {
@@ -190,7 +196,9 @@ export default function MusicPlayer() {
         }}
       />
 
-      <div className={`music-player glass ${current ? "" : "empty"}`}>
+      <div
+        className={`music-player glass ${current ? "" : "empty"} ${playing ? "playing" : ""}`}
+      >
         {/* 封面 */}
         <div className="mp-cover">
           {cover ? (
@@ -206,6 +214,14 @@ export default function MusicPlayer() {
           ) : (
             <span className="mp-cover-fallback">🎵</span>
           )}
+        </div>
+
+        {/* 律动均衡条（播放时跳动） */}
+        <div className="mp-eq" aria-hidden>
+          <span />
+          <span />
+          <span />
+          <span />
         </div>
 
         {/* 信息 */}

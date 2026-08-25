@@ -1139,6 +1139,90 @@ button {
   font-size: 24px;
 }
 
+/* ============ 音乐律动 ============ */
+/* 均衡条：播放时跳动，暂停静止 */
+.mp-eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.mp-eq span {
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  height: 6px;
+  animation: eq-bounce 0.9s ease-in-out infinite;
+}
+
+.mp-eq span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.mp-eq span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.mp-eq span:nth-child(4) {
+  animation-delay: 0.45s;
+}
+
+@keyframes eq-bounce {
+  0%,
+  100% {
+    height: 6px;
+  }
+  50% {
+    height: 22px;
+  }
+}
+
+/* 暂停时静止 */
+.music-player:not(.playing) .mp-eq span {
+  animation-play-state: paused;
+  height: 6px;
+}
+
+/* 播放时封面律动光环 */
+.music-player.playing .mp-cover {
+  animation: mp-pulse-ring 1.8s ease-out infinite;
+}
+
+@keyframes mp-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 122, 184, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 122, 184, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 122, 184, 0);
+  }
+}
+
+/* 播放时背景光斑脉动 */
+body.music-playing .orb {
+  animation: float 18s ease-in-out infinite alternate,
+    orb-music-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes orb-music-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 播放时花瓣稍快 */
+body.music-playing .petal {
+  animation-duration: 10s;
+}
+
 .mp-info {
   min-width: 0;
   flex: 0 1 240px;
