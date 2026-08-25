@@ -354,12 +354,12 @@ button {
 }
 
 .hero-avatar {
-  width: 110px;
-  height: 110px;
-  margin: 0 auto 18px;
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 14px;
   display: grid;
   place-items: center;
-  font-size: 56px;
+  font-size: 42px;
   border-radius: 50%;
   animation: float-avatar 4s ease-in-out infinite;
 }
@@ -1888,12 +1888,12 @@ button {
 }
 
 .intro-cover-avatar {
-  width: 110px;
-  height: 110px;
-  margin: 0 auto 20px;
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 16px;
   display: grid;
   place-items: center;
-  font-size: 58px;
+  font-size: 48px;
   background: var(--glass-bg);
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
@@ -2890,9 +2890,9 @@ button {
   }
 
   .hero-avatar {
-    width: 88px;
-    height: 88px;
-    font-size: 44px;
+    width: 68px;
+    height: 68px;
+    font-size: 34px;
   }
 
   .hero-title {
@@ -3104,9 +3104,9 @@ button {
 
   /* 封面入场动画：手机端紧凑 */
   .intro-cover-avatar {
-    width: 84px;
-    height: 84px;
-    font-size: 44px;
+    width: 72px;
+    height: 72px;
+    font-size: 38px;
   }
 
   .intro-cover-name {
