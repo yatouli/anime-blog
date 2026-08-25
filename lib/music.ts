@@ -19,7 +19,7 @@ async function neteaseFetch<T>(path: string): Promise<T> {
       Cookie: "os=pc",
       "Accept-Language": "zh-CN,zh;q=0.9",
     },
-    signal: AbortSignal.timeout(12000),
+    signal: AbortSignal.timeout(5000),
   });
   if (!res.ok) throw new Error(`netease api ${res.status}`);
   return (await res.json()) as T;
