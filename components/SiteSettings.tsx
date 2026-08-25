@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { applyConfig, bgGradients, DEFAULT_CONFIG, setConfig } from "@/lib/config";
+import { compressImage, safeJson } from "@/lib/compress";
 import type { SiteConfig, WallItem } from "@/lib/types";
 
 /** 站点设置：背景 / 模糊 / 压暗 / 头像 / 图片墙，改动即时预览 */
@@ -35,10 +36,11 @@ export default function SiteSettings() {
   }, []);
 
   const uploadImage = async (file: File) => {
+    const compressed = await compressImage(file);
     const fd = new FormData();
-    fd.append("file", file);
+    fd.append("file", compressed);
     const res = await fetch("/api/upload", { method: "POST", body: fd });
-    const data = await res.json();
+    const data = await safeJson<{ url?: string; error?: string }>(res);
     if (!res.ok) throw new Error(data.error || "上传失败");
     return data.url as string;
   };

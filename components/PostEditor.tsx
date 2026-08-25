@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { compressImage, safeJson } from "@/lib/compress";
 import { coverGradients } from "@/lib/site";
 import type { Post } from "@/lib/types";
 
@@ -58,12 +59,13 @@ export default function PostEditor({ postId }: Props) {
       .finally(() => setLoading(false));
   }, [postId]);
 
-  /** 上传图片，返回可访问 URL；失败抛错 */
+  /** 上传图片：先压缩再传（规避平台 4.5MB 限制），返回可访问 URL；失败抛错 */
   const uploadImage = async (file: File): Promise<string> => {
+    const compressed = await compressImage(file);
     const fd = new FormData();
-    fd.append("file", file);
+    fd.append("file", compressed);
     const res = await fetch("/api/upload", { method: "POST", body: fd });
-    const data = await res.json();
+    const data = await safeJson<{ url?: string; error?: string }>(res);
     if (!res.ok) throw new Error(data.error || "上传失败");
     return data.url as string;
   };
