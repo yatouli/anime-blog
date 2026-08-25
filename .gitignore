@@ -6,3 +6,8 @@ next-env.d.ts
 .DS_Store
 public/uploads
 data/uploads
+data/*.db
+data/*.db-wal
+data/*.db-shm
+.env
+.env.local

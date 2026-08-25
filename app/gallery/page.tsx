@@ -6,8 +6,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "图片墙" };
 
-export default function GalleryPage() {
-  const { gallery } = getConfig();
+export default async function GalleryPage() {
+  const { gallery } = await getConfig();
 
   return (
     <>

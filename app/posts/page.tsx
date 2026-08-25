@@ -6,8 +6,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "文章" };
 
-export default function PostsPage() {
-  const posts = getPosts();
+export default async function PostsPage() {
+  const posts = await getPosts();
 
   return (
     <>

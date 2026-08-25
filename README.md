@@ -93,21 +93,41 @@ anime-blog/
 音频版权归各音乐平台所有，请仅用于个人学习与欣赏。
 歌曲实际可播性受版权限制，部分歌曲会提示无法播放，属正常现象。
 
-## 🚢 部署提示
+## 🚢 部署
 
-- **自建服务器（推荐）**：`npm run build && npm run start`，数据（文章/评论/图片）都存本地，开箱即用。
-- **Vercel**：`data/` 是本地文件系统，serverless 平台**写入会丢失**。
-  若要在 Vercel 上完整使用（写作/评论/上传），需要把 `lib/store.ts` 的存储换成数据库
-  （如 SQLite + Turso，或 Postgres/Upstash）。只读场景（展示文章）可以直接部署。
-- 环境变量：
-  - `ADMIN_PASSWORD`：后台密码（生产环境必设）
-  - `SITE_URL`：站点域名，用于 RSS / sitemap 生成（如 `https://your.site`）
-- 若部署在 HTTPS 下，播放器会自动把音频地址升级为 https，避免浏览器混合内容拦截。
+数据存储已迁移为 **SQLite（@libsql/client）**：本地/自建服务器用文件库，
+Vercel 用 **Turso**（托管 libSQL）——同一套代码，首次请求自动建表并从 `data/*.json` 导入种子数据。
+
+### 方式一：自建服务器 / VPS（默认，零配置）
+
+```bash
+npm install
+npm run build
+ADMIN_PASSWORD=你的密码 SITE_URL=https://你的域名 npm run start
+```
+
+- 数据存在本地 `data/blog.db`（SQLite 文件）+ `data/uploads/`（图片）
+- 配合 PM2 常驻、Nginx 反代 + HTTPS（记得 `client_max_body_size` 调大）
+
+### 方式二：Vercel（免费，功能全开）
+
+1. 注册 [Turso](https://turso.tech) → `turso db create anime-blog` → `turso db tokens create anime-blog`，
+   拿到 `DATABASE_URL`（libsql://…）和 `TURSO_AUTH_TOKEN`
+2. Vercel 控制台 → 项目 → Settings → Environment Variables 添加：
+   - `DATABASE_URL` = 你的 Turso 地址
+   - `TURSO_AUTH_TOKEN` = 你的 Token
+   - `ADMIN_PASSWORD` = 后台密码
+   - `SITE_URL` = 你的 Vercel 域名
+   - `BLOB_READ_WRITE_TOKEN` = Vercel 存储 → Blob 的读写 Token（图片上传用；不设则上传不可用）
+3. 连接 GitHub 仓库 → Deploy。**无需手动建表**：首次访问自动建表 + 导入种子数据
+
+> 参考 `.env.example`，全部环境变量说明都在里面。
 
 ## 🗂 备份与迁移
 
-所有内容都在 `data/` 目录：`posts.json`（文章）、`friends.json`（友链）、
-`comments.json`（评论）、`uploads/`（上传图片）。备份这个目录即可；换机器时整体拷贝。
+- 自建服务器：备份 `data/blog.db`（数据库）+ `data/uploads/`（图片）即可
+- 远程（Turso/Blob）：数据库和图片都在云端，无需本地备份；换平台导出 SQL 即可
+- `data/*.json` 仅作为**首次初始化的种子数据**保留在仓库中（也是默认示例内容）
 
 ## 🧭 常见问题
 

@@ -10,7 +10,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.4",
     "@uiw/react-md-editor": "^4.0.5",
+    "@vercel/blob": "^2.8.0",
     "next": "^15.3.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

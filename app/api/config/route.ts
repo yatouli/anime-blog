@@ -5,7 +5,7 @@ import { getConfig, saveConfig } from "@/lib/store";
 import type { SiteConfig } from "@/lib/types";
 
 export async function GET() {
-  return NextResponse.json({ config: getConfig() });
+  return NextResponse.json({ config: await getConfig() });
 }
 
 export async function PUT(req: Request) {
@@ -14,7 +14,7 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: "未登录" }, { status: 401 });
   }
   const body = (await req.json().catch(() => ({}))) as Partial<SiteConfig>;
-  const config = saveConfig({
+  const config = await saveConfig({
     backgroundType: body.backgroundType,
     gradient: typeof body.gradient === "string" ? body.gradient : undefined,
     image: typeof body.image === "string" ? body.image : undefined,

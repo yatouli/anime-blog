@@ -7,52 +7,40 @@
   "avatar": "",
   "gallery": [
     {
-      "src": "/wall/wall-0.svg",
-      "title": "月色星空",
-      "w": 3,
-      "h": 4
-    },
-    {
-      "src": "/wall/wall-1.svg",
-      "title": "樱花雨",
-      "w": 4,
-      "h": 3
-    },
-    {
-      "src": "/wall/wall-2.svg",
-      "title": "暮色之城",
-      "w": 3,
-      "h": 3
-    },
-    {
-      "src": "/wall/wall-3.svg",
-      "title": "深海梦境",
-      "w": 4,
-      "h": 3
-    },
-    {
-      "src": "/wall/wall-4.svg",
-      "title": "朝阳",
-      "w": 3,
-      "h": 4
-    },
-    {
-      "src": "/wall/wall-5.svg",
-      "title": "极光之夜",
-      "w": 4,
-      "h": 3
-    },
-    {
-      "src": "/wall/wall-6.svg",
-      "title": "糖果云",
-      "w": 3,
-      "h": 3
-    },
-    {
       "src": "/wall/wall-7.svg",
       "title": "星轨",
       "w": 4,
       "h": 4
+    },
+    {
+      "src": "/api/files/1787633988297-0mubra.jpg",
+      "title": "a0cqpewth0v",
+      "w": 8,
+      "h": 8
+    },
+    {
+      "src": "/api/files/1787633988630-riu71m.webp",
+      "title": "OIP-C (1)",
+      "w": 8,
+      "h": 8
+    },
+    {
+      "src": "/api/files/1787633988679-mbrldt.webp",
+      "title": "OIP-C (2)",
+      "w": 8,
+      "h": 8
+    },
+    {
+      "src": "/api/files/1787633988738-ceqy11.webp",
+      "title": "OIP-C",
+      "w": 8,
+      "h": 8
+    },
+    {
+      "src": "/api/files/1787633988802-1nhkik.jpg",
+      "title": "vh0g5yqiq4c",
+      "w": 8,
+      "h": 8
     }
   ]
 }

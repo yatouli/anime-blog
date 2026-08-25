@@ -8,7 +8,7 @@ type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(_req: Request, ctx: Ctx) {
   const { id } = await ctx.params;
-  const post = getPostById(id);
+  const post = await getPostById(id);
   if (!post) return NextResponse.json({ error: "文章不存在" }, { status: 404 });
   return NextResponse.json({ post });
 }
@@ -23,7 +23,7 @@ export async function PUT(req: Request, ctx: Ctx) {
   if (!body.title?.trim() || !body.content?.trim()) {
     return NextResponse.json({ error: "标题和正文不能为空" }, { status: 400 });
   }
-  const post = updatePost(id, {
+  const post = await updatePost(id, {
     title: body.title,
     content: body.content,
     slug: body.slug,
@@ -44,7 +44,7 @@ export async function DELETE(_req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "未登录" }, { status: 401 });
   }
   const { id } = await ctx.params;
-  const ok = deletePost(id);
+  const ok = await deletePost(id);
   if (!ok) return NextResponse.json({ error: "文章不存在" }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

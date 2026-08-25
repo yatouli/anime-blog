@@ -6,8 +6,8 @@ export const dynamic = "force-dynamic";
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:3000";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const posts = getPosts();
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const posts = await getPosts();
   const now = new Date();
 
   const staticPages: MetadataRoute.Sitemap = [

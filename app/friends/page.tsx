@@ -8,8 +8,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "友链" };
 
-export default function FriendsPage() {
-  const friends = getFriends();
+export default async function FriendsPage() {
+  const friends = await getFriends();
 
   return (
     <>

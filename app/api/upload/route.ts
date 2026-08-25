@@ -8,10 +8,9 @@ import { AUTH_COOKIE, verifyToken } from "@/lib/auth";
 const ALLOWED = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg"]);
 
 /**
- * 图片上传：保存到 data/uploads/，通过 /api/files/<name> 动态提供。
- * 无大小限制（用于封面、图片墙、背景、头像）。
- * 注意：不能放 public/ —— Next 生产构建只服务构建时已存在的 public 文件，
- * 运行期新增文件不会被提供（已知行为），因此用 API 路由实时读盘。
+ * 图片上传（封面 / 图片墙 / 背景 / 头像），无大小限制。
+ * - 本地/自建服务器：保存到 data/uploads/，经 /api/files/<name> 动态提供
+ * - Vercel：设置 BLOB_READ_WRITE_TOKEN 后自动改用 Vercel Blob（对象存储，持久）
  */
 export async function POST(req: Request) {
   const token = (await cookies()).get(AUTH_COOKIE)?.value;
@@ -31,6 +30,18 @@ export async function POST(req: Request) {
   }
 
   const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+  // —— Vercel Blob 模式（对象存储，serverless 可持久）——
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const { put } = await import("@vercel/blob");
+    const blob = await put(`uploads/${name}`, file, {
+      access: "public",
+      contentType: file.type || undefined,
+    });
+    return NextResponse.json({ url: blob.url }, { status: 201 });
+  }
+
+  // —— 本地文件模式 ——
   const dir = path.join(process.cwd(), "data", "uploads");
   const buf = Buffer.from(await file.arrayBuffer());
   fs.mkdirSync(dir, { recursive: true });

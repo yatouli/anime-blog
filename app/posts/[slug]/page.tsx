@@ -10,15 +10,14 @@ import { extractHeadings } from "@/lib/toc";
 
 export const dynamic = "force-dynamic";
 
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  return params.then(({ slug }) => {
-    const post = getPostBySlug(slug);
-    return { title: post?.title ?? "文章不存在" };
-  });
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
+  return { title: post?.title ?? "文章不存在" };
 }
 
 export default async function PostPage({
@@ -27,10 +26,11 @@ export default async function PostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const others = getPosts().filter((p) => p.id !== post.id).slice(0, 3);
+  const all = await getPosts();
+  const others = all.filter((p) => p.id !== post.id).slice(0, 3);
   const headings = extractHeadings(post.content);
   const hasImage = !!post.coverImage;
 

@@ -7,7 +7,7 @@ export async function GET(req: Request) {
   if (!postId) {
     return NextResponse.json({ error: "缺少 postId 参数" }, { status: 400 });
   }
-  return NextResponse.json({ comments: getCommentsByPost(postId) });
+  return NextResponse.json({ comments: await getCommentsByPost(postId) });
 }
 
 export async function POST(req: Request) {
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
   if (name.length > 30 || content.length > 1000) {
     return NextResponse.json({ error: "昵称最长 30 字，评论最长 1000 字" }, { status: 400 });
   }
-  const comment = addComment({
+  const comment = await addComment({
     postId: body.postId,
     name,
     content,

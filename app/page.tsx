@@ -8,8 +8,8 @@ import { site } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const posts = getPosts().slice(0, 3);
+export default async function Home() {
+  const posts = (await getPosts()).slice(0, 3);
 
   return (
     <>

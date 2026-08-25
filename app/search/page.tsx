@@ -14,7 +14,8 @@ export default async function SearchPage({
   const { q } = await searchParams;
   const kw = (q ?? "").trim().toLowerCase();
 
-  const posts = getPosts().filter((p) => {
+  const all = await getPosts();
+  const posts = all.filter((p) => {
     if (!kw) return true;
     const haystack = [p.title, p.excerpt, p.content, p.tags.join(" ")]
       .join("\n")

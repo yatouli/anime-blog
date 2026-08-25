@@ -1,7 +1,6 @@
-import fs from "fs";
-import path from "path";
 import crypto from "crypto";
 import { DEFAULT_CONFIG } from "./config";
+import { db, ensureDb } from "./db";
 import type {
   Comment,
   CommentInput,
@@ -11,26 +10,6 @@ import type {
   PostInput,
   SiteConfig,
 } from "./types";
-
-const DATA_DIR = path.join(process.cwd(), "data");
-const POSTS_FILE = path.join(DATA_DIR, "posts.json");
-const FRIENDS_FILE = path.join(DATA_DIR, "friends.json");
-const COMMENTS_FILE = path.join(DATA_DIR, "comments.json");
-const CONFIG_FILE = path.join(DATA_DIR, "config.json");
-
-function readJson<T>(file: string, fallback: T): T {
-  try {
-    if (!fs.existsSync(file)) return fallback;
-    return JSON.parse(fs.readFileSync(file, "utf-8")) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeJson(file: string, data: unknown): void {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf-8");
-}
 
 export function uid(): string {
   return crypto.randomUUID();
@@ -48,28 +27,70 @@ function slugify(s: string): string {
   return base || `post-${Date.now().toString(36)}`;
 }
 
+/* ---------------- 行 → 对象 ---------------- */
+
+interface RawRow {
+  id: string;
+  slug: string;
+  title: string;
+  tags: string;
+  date: string;
+  coverEmoji: string;
+  coverGradient: string;
+  coverImage: string | null;
+  excerpt: string;
+  content: string;
+}
+
+function toPost(r: RawRow): Post {
+  return {
+    id: r.id,
+    slug: r.slug,
+    title: r.title,
+    tags: safeJson<string[]>(r.tags, []),
+    date: r.date,
+    coverEmoji: r.coverEmoji,
+    coverGradient: r.coverGradient,
+    coverImage: r.coverImage || undefined,
+    excerpt: r.excerpt,
+    content: r.content,
+  };
+}
+
+function safeJson<T>(s: string | null | undefined, fallback: T): T {
+  if (!s) return fallback;
+  try {
+    return JSON.parse(s) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 /* ---------------- Posts ---------------- */
 
-export function getPosts(): Post[] {
-  return readJson<Post[]>(POSTS_FILE, []).sort((a, b) =>
-    b.date.localeCompare(a.date)
-  );
+export async function getPosts(): Promise<Post[]> {
+  await ensureDb();
+  const res = await db.execute(`SELECT * FROM posts ORDER BY date DESC`);
+  return res.rows.map((r) => toPost(r as unknown as RawRow));
 }
 
-export function getPostById(id: string): Post | undefined {
-  return getPosts().find((p) => p.id === id);
+export async function getPostById(id: string): Promise<Post | undefined> {
+  await ensureDb();
+  const res = await db.execute({ sql: `SELECT * FROM posts WHERE id = ?`, args: [id] });
+  return res.rows[0] ? toPost(res.rows[0] as unknown as RawRow) : undefined;
 }
 
-export function getPostBySlug(slug: string): Post | undefined {
-  return getPosts().find((p) => p.slug === slug);
+export async function getPostBySlug(slug: string): Promise<Post | undefined> {
+  await ensureDb();
+  const res = await db.execute({ sql: `SELECT * FROM posts WHERE slug = ?`, args: [slug] });
+  return res.rows[0] ? toPost(res.rows[0] as unknown as RawRow) : undefined;
 }
 
-export function createPost(input: PostInput): Post {
-  const posts = readJson<Post[]>(POSTS_FILE, []);
-  const slug = uniqueSlug(input.slug || slugify(input.title), posts);
+export async function createPost(input: PostInput): Promise<Post> {
+  await ensureDb();
   const post: Post = {
     id: uid(),
-    slug,
+    slug: await uniqueSlug(input.slug || slugify(input.title)),
     title: input.title,
     tags: input.tags ?? [],
     date: input.date || new Date().toISOString().slice(0, 10),
@@ -84,66 +105,100 @@ export function createPost(input: PostInput): Post {
       "（暂无摘要）",
     content: input.content,
   };
-  posts.push(post);
-  writeJson(POSTS_FILE, posts);
+  await db.execute({
+    sql: `INSERT INTO posts
+      (id, slug, title, tags, date, coverEmoji, coverGradient, coverImage, excerpt, content)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [
+      post.id,
+      post.slug,
+      post.title,
+      JSON.stringify(post.tags),
+      post.date,
+      post.coverEmoji,
+      post.coverGradient,
+      post.coverImage ?? null,
+      post.excerpt,
+      post.content,
+    ],
+  });
   return post;
 }
 
-export function updatePost(id: string, input: PostInput): Post | undefined {
-  const posts = readJson<Post[]>(POSTS_FILE, []);
-  const idx = posts.findIndex((p) => p.id === id);
-  if (idx < 0) return undefined;
-  const prev = posts[idx];
+export async function updatePost(id: string, input: PostInput): Promise<Post | undefined> {
+  await ensureDb();
+  const prev = await getPostById(id);
+  if (!prev) return undefined;
+
   const slug =
-    input.slug && input.slug !== prev.slug
-      ? uniqueSlug(input.slug, posts.filter((_, i) => i !== idx))
-      : prev.slug;
-  posts[idx] = {
-    ...prev,
-    ...input,
-    id,
-    slug,
-    tags: input.tags ?? prev.tags,
-    date: input.date || prev.date,
-    coverEmoji: input.coverEmoji || prev.coverEmoji,
-    coverGradient: input.coverGradient || prev.coverGradient,
-    coverImage: input.coverImage === undefined ? prev.coverImage : input.coverImage || undefined,
-    excerpt:
-      input.excerpt ||
-      input.content.replace(/[#>*`_\-\[\]()!]/g, "").trim().slice(0, 120) ||
-      prev.excerpt,
-  };
-  writeJson(POSTS_FILE, posts);
-  return posts[idx];
+    input.slug && input.slug !== prev.slug ? await uniqueSlug(input.slug, id) : prev.slug;
+  const tags = input.tags ?? prev.tags;
+  const date = input.date || prev.date;
+  const coverEmoji = input.coverEmoji || prev.coverEmoji;
+  const coverGradient = input.coverGradient || prev.coverGradient;
+  const coverImage =
+    input.coverImage === undefined ? prev.coverImage : input.coverImage || undefined;
+  const excerpt =
+    input.excerpt ||
+    input.content.replace(/[#>*`_\-\[\]()!]/g, "").trim().slice(0, 120) ||
+    prev.excerpt;
+
+  await db.execute({
+    sql: `UPDATE posts SET slug=?, title=?, tags=?, date=?, coverEmoji=?, coverGradient=?, coverImage=?, excerpt=?, content=? WHERE id=?`,
+    args: [
+      slug,
+      input.title,
+      JSON.stringify(tags),
+      date,
+      coverEmoji,
+      coverGradient,
+      coverImage ?? null,
+      excerpt,
+      input.content,
+      id,
+    ],
+  });
+  return getPostById(id);
 }
 
-export function deletePost(id: string): boolean {
-  const posts = readJson<Post[]>(POSTS_FILE, []);
-  const next = posts.filter((p) => p.id !== id);
-  if (next.length === posts.length) return false;
-  writeJson(POSTS_FILE, next);
-  return true;
+export async function deletePost(id: string): Promise<boolean> {
+  await ensureDb();
+  const res = await db.execute({ sql: `DELETE FROM posts WHERE id = ?`, args: [id] });
+  return Number(res.rowsAffected) > 0;
 }
 
-function uniqueSlug(slug: string, posts: Post[]): string {
+async function uniqueSlug(slug: string, exceptId?: string): Promise<string> {
   let s = slug;
   let i = 2;
-  while (posts.some((p) => p.slug === s)) {
+  for (;;) {
+    const res = await db.execute({
+      sql: exceptId
+        ? `SELECT 1 FROM posts WHERE slug = ? AND id != ?`
+        : `SELECT 1 FROM posts WHERE slug = ?`,
+      args: exceptId ? [s, exceptId] : [s],
+    });
+    if (res.rows.length === 0) return s;
     s = `${slug}-${i++}`;
   }
-  return s;
 }
 
 /* ---------------- Friends ---------------- */
 
-export function getFriends(): Friend[] {
-  return readJson<Friend[]>(FRIENDS_FILE, []).sort((a, b) =>
-    b.createdAt.localeCompare(a.createdAt)
-  );
+export async function getFriends(): Promise<Friend[]> {
+  await ensureDb();
+  const res = await db.execute(`SELECT * FROM friends ORDER BY createdAt DESC`);
+  return res.rows.map((r) => ({
+    id: String(r.id),
+    name: String(r.name),
+    url: String(r.url),
+    avatar: String(r.avatar ?? ""),
+    desc: String(r.desc ?? ""),
+    createdAt: String(r.createdAt),
+  }));
 }
 
-export function addFriend(input: FriendInput): Friend {
-  const friends = readJson<Friend[]>(FRIENDS_FILE, []);
+export async function addFriend(input: FriendInput): Promise<Friend> {
+  await ensureDb();
   const friend: Friend = {
     id: uid(),
     name: input.name.trim().slice(0, 30),
@@ -156,21 +211,32 @@ export function addFriend(input: FriendInput): Friend {
     desc: input.desc?.trim().slice(0, 100) || "这位朋友很低调，什么也没写～",
     createdAt: new Date().toISOString(),
   };
-  friends.push(friend);
-  writeJson(FRIENDS_FILE, friends);
+  await db.execute({
+    sql: `INSERT INTO friends (id, name, url, avatar, desc, createdAt) VALUES (?, ?, ?, ?, ?, ?)`,
+    args: [friend.id, friend.name, friend.url, friend.avatar, friend.desc, friend.createdAt],
+  });
   return friend;
 }
 
 /* ---------------- Comments ---------------- */
 
-export function getCommentsByPost(postId: string): Comment[] {
-  return readJson<Comment[]>(COMMENTS_FILE, [])
-    .filter((c) => c.postId === postId)
-    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+export async function getCommentsByPost(postId: string): Promise<Comment[]> {
+  await ensureDb();
+  const res = await db.execute({
+    sql: `SELECT * FROM comments WHERE postId = ? ORDER BY createdAt ASC`,
+    args: [postId],
+  });
+  return res.rows.map((r) => ({
+    id: String(r.id),
+    postId: String(r.postId),
+    name: String(r.name),
+    content: String(r.content),
+    createdAt: String(r.createdAt),
+  }));
 }
 
-export function addComment(input: CommentInput): Comment {
-  const comments = readJson<Comment[]>(COMMENTS_FILE, []);
+export async function addComment(input: CommentInput): Promise<Comment> {
+  await ensureDb();
   const comment: Comment = {
     id: uid(),
     postId: input.postId,
@@ -178,25 +244,30 @@ export function addComment(input: CommentInput): Comment {
     content: input.content.trim().slice(0, 1000),
     createdAt: new Date().toISOString(),
   };
-  comments.push(comment);
-  writeJson(COMMENTS_FILE, comments);
+  await db.execute({
+    sql: `INSERT INTO comments (id, postId, name, content, createdAt) VALUES (?, ?, ?, ?, ?)`,
+    args: [comment.id, comment.postId, comment.name, comment.content, comment.createdAt],
+  });
   return comment;
 }
 
 /* ---------------- Site Config ---------------- */
 
-export function getConfig(): SiteConfig {
-  const saved = readJson<Partial<SiteConfig>>(CONFIG_FILE, {});
+export async function getConfig(): Promise<SiteConfig> {
+  await ensureDb();
+  const res = await db.execute(`SELECT value FROM config WHERE id = 1`);
+  const saved = res.rows[0] ? safeJson<Partial<SiteConfig>>(String(res.rows[0].value), {}) : {};
   return { ...DEFAULT_CONFIG, ...saved };
 }
 
-export function saveConfig(input: Partial<SiteConfig>): SiteConfig {
+export async function saveConfig(input: Partial<SiteConfig>): Promise<SiteConfig> {
+  await ensureDb();
   // 只合并显式传入的字段：跳过 undefined，避免部分更新把其他配置清空
   const merged = Object.fromEntries(
     Object.entries(input).filter(([, v]) => v !== undefined)
   ) as Partial<SiteConfig>;
   const next: SiteConfig = {
-    ...getConfig(),
+    ...(await getConfig()),
     ...merged,
   };
   // 仅对显式传入的字段做校验/钳制
@@ -213,7 +284,6 @@ export function saveConfig(input: Partial<SiteConfig>): SiteConfig {
     next.avatar = merged.avatar.trim().slice(0, 500);
   }
   if (merged.gallery !== undefined) {
-    // 校验图片墙：仅保留 src 非空的条目，限制数量与字段长度
     const list = Array.isArray(merged.gallery) ? merged.gallery : [];
     next.gallery = list
       .filter((it) => it && typeof it.src === "string" && it.src.trim())
@@ -225,6 +295,10 @@ export function saveConfig(input: Partial<SiteConfig>): SiteConfig {
         h: Math.max(1, Math.min(8, Number(it.h) || 4)),
       }));
   }
-  writeJson(CONFIG_FILE, next);
+  await db.execute({
+    sql: `INSERT INTO config (id, value) VALUES (1, ?)
+          ON CONFLICT(id) DO UPDATE SET value = excluded.value`,
+    args: [JSON.stringify(next)],
+  });
   return next;
 }

@@ -15,7 +15,7 @@ function esc(s: string): string {
 }
 
 export async function GET() {
-  const posts = getPosts();
+  const posts = await getPosts();
   const items = posts
     .map((p) => {
       const link = `${SITE_URL}/posts/${p.slug}`;
