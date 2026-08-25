@@ -1,9 +1,10 @@
 import type { MusicSong } from "./types";
 
 /**
- * 网易云音乐官方接口代理（服务端调用，绕开浏览器跨域限制）。
- * 实测：/api/search/get/web、/api/song/enhance/player/url、/api/v3/song/detail
- * 在带 UA + Referer + os=pc Cookie 时可直接访问。
+ * 音乐双数据源：
+ * - 网易云（music.163.com）：仅在国内/对网易友好的网络可用（Vercel 海外服务器会返回空结果）
+ * - iTunes Search API：全球可用（苹果 CDN），自带 30 秒试听音频
+ * 搜索时优先网易，结果为空/失败时自动回退 iTunes。
  */
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
@@ -41,24 +42,67 @@ function normalize(s: RawSong): MusicSong {
     .trim();
   const album = s.al?.name || s.album?.name || "未知专辑";
   const albumPic =
-    (s.al?.picUrl || s.album?.picUrl || "").replace(/^http:\/\//, "https://") ||
-    "";
+    (s.al?.picUrl || s.album?.picUrl || "").replace(/^http:\/\//, "https://") || "";
   const duration = s.dt ?? s.duration ?? 0;
   return { id: s.id, name: s.name, artist, album, albumPic, duration };
 }
 
-/** 搜索歌曲，返回规范化列表 */
-export async function searchSongs(keywords: string, limit = 12): Promise<MusicSong[]> {
-  const data = await neteaseFetch<{
-    result?: { songs?: RawSong[] };
-    code?: number;
-  }>(
-    `/api/search/get/web?s=${encodeURIComponent(keywords)}&type=1&limit=${limit}`
-  );
-  return (data.result?.songs || []).map(normalize);
+/* ---------------- iTunes 源 ---------------- */
+
+interface ItunesResult {
+  trackId: number;
+  trackName: string;
+  artistName: string;
+  collectionName?: string;
+  artworkUrl100?: string;
+  previewUrl?: string;
+  trackTimeMillis?: number;
 }
 
-/** 批量获取歌曲详情（含封面、时长），用于补齐搜索结果信息 */
+function fromItunes(r: ItunesResult, idx: number): MusicSong {
+  return {
+    id: -Math.abs(r.trackId), // 负数 id 标记为 iTunes 源，避免与网易 id 冲突
+    name: r.trackName || "未知歌曲",
+    artist: r.artistName || "未知歌手",
+    album: r.collectionName || "未知专辑",
+    albumPic: (r.artworkUrl100 || "").replace("100x100", "300x300"),
+    duration: r.trackTimeMillis ?? 0,
+    previewUrl: r.previewUrl || undefined,
+    source: "itunes",
+    key: `${r.trackId}-${idx}`,
+  };
+}
+
+async function itunesSearch(keywords: string, limit = 12): Promise<MusicSong[]> {
+  const res = await fetch(
+    `https://itunes.apple.com/search?media=music&term=${encodeURIComponent(
+      keywords
+    )}&limit=${limit}&country=CN`,
+    { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(12000) }
+  );
+  if (!res.ok) throw new Error(`itunes api ${res.status}`);
+  const j = (await res.json()) as { results?: ItunesResult[] };
+  return (j.results || []).map((r, i) => fromItunes(r, i));
+}
+
+/* ---------------- 对外接口 ---------------- */
+
+/** 搜索歌曲：优先网易云，失败或为空时回退 iTunes */
+export async function searchSongs(keywords: string, limit = 12): Promise<MusicSong[]> {
+  try {
+    const netease = await neteaseFetch<{
+      result?: { songs?: RawSong[] };
+      code?: number;
+    }>(`/api/search/get/web?s=${encodeURIComponent(keywords)}&type=1&limit=${limit}`);
+    const songs = (netease.result?.songs || []).map(normalize);
+    if (songs.length > 0) return songs;
+  } catch {
+    /* 网易不可用则走 iTunes */
+  }
+  return itunesSearch(keywords, limit);
+}
+
+/** 批量获取歌曲详情（网易云） */
 export async function songDetail(ids: number[]): Promise<MusicSong[]> {
   if (!ids.length) return [];
   const c = ids.map((id) => `{"id":${id}}`).join(",");
@@ -68,7 +112,7 @@ export async function songDetail(ids: number[]): Promise<MusicSong[]> {
   return (data.songs || []).map(normalize);
 }
 
-/** 获取可播放的音频地址；若为 http 则尽量升级为 https 避免浏览器混合内容拦截 */
+/** 获取网易云可播放音频地址；若为 http 则升级为 https */
 export async function songUrl(id: number, br = 320000): Promise<string> {
   const data = await neteaseFetch<{
     data?: { url: string | null }[];

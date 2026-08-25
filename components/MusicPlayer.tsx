@@ -31,9 +31,13 @@ export default function MusicPlayer() {
 
   const loadAndPlay = useCallback(async (song: MusicSong) => {
     try {
-      const res = await fetch(`/api/music/songurl?id=${song.id}`);
-      const data = await res.json();
-      const url = data?.url as string | undefined;
+      // iTunes 源歌曲自带试听音频，直接播放；网易云源需请求 songurl
+      let url = song.previewUrl;
+      if (!url) {
+        const res = await fetch(`/api/music/songurl?id=${song.id}`);
+        const data = await res.json();
+        url = data?.url as string | undefined;
+      }
       if (!url) {
         setError("这首歌暂时无法播放（可能受版权限制）");
         return;

@@ -78,6 +78,11 @@ export interface MusicSong {
   album: string;
   albumPic: string;
   duration: number; // ms
+  /** iTunes 源歌曲的试听音频（无需再请求 songurl） */
+  previewUrl?: string;
+  source?: "netease" | "itunes";
+  /** 列表内唯一键（iTunes 可能有重复 trackId） */
+  key?: string;
 }
 
 export interface WallItem {
