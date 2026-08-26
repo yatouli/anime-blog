@@ -963,9 +963,12 @@ button {
 .photo-carousel-slide {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
   opacity: 0;
   transition: opacity 0.9s ease;
   z-index: 1;
+  display: block;
 }
 
 .photo-carousel-slide.active {
@@ -974,10 +977,11 @@ button {
 }
 
 .photo-carousel-slide img {
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
   object-fit: cover;
   display: block;
+  max-width: none;
 }
 
 .carousel-arrow {
