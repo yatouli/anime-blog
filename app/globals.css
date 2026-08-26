@@ -409,9 +409,9 @@ button {
 
 /* ============ 个人名片卡片（首页首屏） ============ */
 .profile-card {
-  max-width: 860px;
+  max-width: 980px;
   margin: 24px auto 0;
-  padding: 28px 32px 24px;
+  padding: 30px 36px 24px;
   border-radius: 28px;
   animation: hero-rise 0.8s ease 0.3s both;
 }

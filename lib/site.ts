@@ -11,6 +11,10 @@ export const site = {
   email: "3996961083@qq.com",
   github: "https://github.com/",
   bilibili: "https://space.bilibili.com/",
+  /** QQ 号（填了就在首页显示 QQ 图标；tencent://message 唤起） */
+  qq: "",
+  /** 微信号（填了就在首页显示微信图标；可留空） */
+  wechat: "",
   since: 2024,
   // 后台登录密码（部署时建议用环境变量 ADMIN_PASSWORD 覆盖）
   adminPassword: "anime2024",
