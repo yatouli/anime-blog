@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Post } from "@/lib/types";
 
 /* ── 分类标签颜色 ── */
@@ -57,10 +57,13 @@ function waveYAt(cx: number, riverY: number, amplitude: number, wavelength: numb
   );
 }
 
-/** 时光河流归档：横向河流曲线 + 上下交替卡片（原生滚动浏览） */
+/** 时光河流归档：横向河流曲线 + 上下交替卡片（拖拽/滚动浏览） */
 export default function ArchiveRiver() {
   const [posts, setPosts] = useState<Post[] | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const dragState = useRef<{ startX: number; startScroll: number; moved: boolean } | null>(null);
+  const suppressClick = useRef(false);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -72,6 +75,39 @@ export default function ArchiveRiver() {
       .catch(() => setPosts([]));
     return () => window.removeEventListener("resize", check);
   }, []);
+
+  /* ── 拖拽滚动（鼠标也可左右拖动河流） ── */
+  const onPointerDown = (e: React.PointerEvent) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    dragState.current = { startX: e.clientX, startScroll: el.scrollLeft, moved: false };
+    el.setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    const drag = dragState.current;
+    const el = scrollRef.current;
+    if (!drag || !el) return;
+    const dx = e.clientX - drag.startX;
+    if (Math.abs(dx) > 4) drag.moved = true;
+    el.scrollLeft = drag.startScroll - dx;
+  };
+
+  const onPointerUp = () => {
+    const drag = dragState.current;
+    dragState.current = null;
+    if (drag?.moved) {
+      // 拖动后抑制本次点击（避免误跳转）
+      suppressClick.current = true;
+      window.setTimeout(() => {
+        suppressClick.current = false;
+      }, 120);
+    }
+  };
+
+  const onCardClick = (e: React.MouseEvent) => {
+    if (suppressClick.current) e.preventDefault();
+  };
 
   const sorted = useMemo(() => [...(posts ?? [])], [posts]);
 
@@ -117,7 +153,14 @@ export default function ArchiveRiver() {
         <div className="empty glass">还没有文章，去写第一篇吧～</div>
       ) : (
         <>
-          <div className="river-scroll">
+          <div
+            ref={scrollRef}
+            className="river-scroll"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+          >
             <div className="river-canvas" style={{ width: totalWidth, height: svgHeight }}>
               <svg
                 width={totalWidth}
@@ -237,6 +280,8 @@ export default function ArchiveRiver() {
                             href={`/posts/${post.slug}`}
                             className="river-card-inner"
                             style={{ height: CARD_H }}
+                            onClick={onCardClick}
+                            draggable={false}
                           >
                             <div
                               className="river-card-cover"
@@ -271,7 +316,7 @@ export default function ArchiveRiver() {
             </div>
           </div>
 
-          <p className="river-hint">↔ 左右滑动浏览时光河流 · 点击卡片阅读全文</p>
+          <p className="river-hint">↔ 按住鼠标拖动 / 左右滑动浏览时光河流 · 点击卡片阅读全文</p>
         </>
       )}
     </div>
