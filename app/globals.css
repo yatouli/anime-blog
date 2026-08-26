@@ -1057,6 +1057,11 @@ button {
   display: none;
 }
 
+/* 电脑端：竖屏图需要更高容器显示完整 */
+.carousel-desktop .photo-carousel {
+  height: 300px;
+}
+
 @media (max-width: 768px) {
   .carousel-desktop {
     display: none;
