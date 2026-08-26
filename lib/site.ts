@@ -12,7 +12,7 @@ export const site = {
   github: "https://github.com/",
   bilibili: "https://space.bilibili.com/",
   /** QQ 号（填了就在首页显示 QQ 图标；tencent://message 唤起） */
-  qq: "",
+  qq: "3996961083@qq.com",
   /** 微信号（填了就在首页显示微信图标；可留空） */
   wechat: "",
   since: 2024,

@@ -4,12 +4,12 @@ import PhotoPreview from "@/components/PhotoPreview";
 import PostCard from "@/components/PostCard";
 import ProfileCard from "@/components/ProfileCard";
 import SiteStats from "@/components/SiteStats";
-import { getPosts } from "@/lib/store";
+import { getConfig, getPosts } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const posts = (await getPosts()).slice(0, 3);
+  const [posts, { gallery }] = await Promise.all([getPosts(), getConfig()]);
 
   return (
     <>
@@ -34,7 +34,7 @@ export default async function Home() {
       {/* 第二行：图片墙 + 右列（最新文章 + 友链/数据） */}
       <div className="home-grid">
         <div className="home-span-4">
-          <PhotoPreview />
+          <PhotoPreview items={gallery} />
         </div>
         <div className="home-span-8 home-col">
           <section className="home-card glass">
