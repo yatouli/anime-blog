@@ -17,6 +17,9 @@ export async function GET(req: Request) {
       Referer: "https://music.163.com/",
       Cookie: "os=pc; appver=8.9.70",
     };
+    const os = searchParams.get("os");
+    if (os) headers["os"] = os;
+    if (searchParams.get("appver")) headers["appver"] = searchParams.get("appver")!;
     let body: string | undefined;
     if (method === "POST") {
       headers["Content-Type"] = "application/x-www-form-urlencoded";
