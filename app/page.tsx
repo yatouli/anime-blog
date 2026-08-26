@@ -10,8 +10,13 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const [posts, { albums, gallery }] = await Promise.all([getPosts(), getConfig()]);
-  // 首页轮播图片：优先合并所有分类的图片，否则回退 gallery
-  const carouselItems = albums.length > 0 ? albums.flatMap((a) => a.photos) : gallery;
+  // 无分类时的兜底：把旧 gallery 合成默认分类
+  const resolvedAlbums =
+    albums.length > 0
+      ? albums
+      : gallery.length > 0
+        ? [{ id: "default", name: "全部壁纸", photos: gallery }]
+        : [];
 
   return (
     <>
@@ -36,7 +41,7 @@ export default async function Home() {
       {/* 第二行：图片墙 + 右列（最新文章 + 友链/数据） */}
       <div className="home-grid">
         <div className="home-span-5">
-          <PhotoPreview items={carouselItems} />
+          <PhotoPreview albums={resolvedAlbums} />
         </div>
         <div className="home-span-7 home-col">
           <section className="home-card glass">

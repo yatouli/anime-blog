@@ -1,16 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import type { WallItem } from "@/lib/types";
+import { useEffect, useMemo, useState } from "react";
+import type { Album, WallItem } from "@/lib/types";
 
-/** 首页卡片：图片墙轮播预览（自动播放 + 箭头/圆点手动切换） */
-export default function PhotoPreview({ items }: { items: WallItem[] }) {
+/**
+ * 首页卡片：图片墙轮播预览。
+ * 电脑端轮播「竖屏」分类，手机端轮播「横屏」分类（找不到对应分类时用全部图片）。
+ */
+export default function PhotoPreview({ albums }: { albums: Album[] }) {
+  const [isMobile, setIsMobile] = useState(false);
   const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const items: WallItem[] = useMemo(() => {
+    const target = isMobile ? "横屏" : "竖屏";
+    const album = albums.find((a) => a.name.includes(target));
+    if (album && album.photos.length > 0) return album.photos;
+    // 找不到对应分类：回退全部图片
+    return albums.flatMap((a) => a.photos);
+  }, [albums, isMobile]);
+
   const n = items.length;
 
   useEffect(() => {
     if (n < 2) return;
+    setIdx((i) => (i >= n ? 0 : i));
     const timer = window.setInterval(() => setIdx((i) => (i + 1) % n), 4000);
     return () => window.clearInterval(timer);
   }, [n]);

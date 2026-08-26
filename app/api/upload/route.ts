@@ -34,11 +34,12 @@ export async function POST(req: Request) {
   // —— Vercel Blob 模式（对象存储，serverless 可持久）——
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     const { put } = await import("@vercel/blob");
-    const blob = await put(`uploads/${name}`, file, {
+    await put(`uploads/${name}`, file, {
       access: "public",
       contentType: file.type || undefined,
     });
-    return NextResponse.json({ url: blob.url }, { status: 201 });
+    // 返回本站代理路径，图片经 CF → Vercel 中转加载（国内可达）
+    return NextResponse.json({ url: `/api/blob/${name}` }, { status: 201 });
   }
 
   // —— 本地文件模式 ——

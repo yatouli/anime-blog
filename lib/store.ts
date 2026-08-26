@@ -11,6 +11,28 @@ import type {
   SiteConfig,
 } from "./types";
 
+/* ---------------- URL 归一化：blob 直链 → 本站代理 ---------------- */
+
+function fixBlobUrl(s: string): string {
+  return s.includes("public.blob.vercel-storage.com/uploads/")
+    ? s.replace(/https?:\/\/[^/"']+\/uploads\//, "/api/blob/")
+    : s;
+}
+
+/** 递归把数据里所有 blob 直链替换成本站代理路径（旧数据自动迁移） */
+function normalizeBlobUrls<T>(v: T): T {
+  if (typeof v === "string") return fixBlobUrl(v) as unknown as T;
+  if (Array.isArray(v)) return v.map(normalizeBlobUrls) as unknown as T;
+  if (v && typeof v === "object") {
+    const o: Record<string, unknown> = {};
+    for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+      o[k] = normalizeBlobUrls(val);
+    }
+    return o as unknown as T;
+  }
+  return v;
+}
+
 export function uid(): string {
   return crypto.randomUUID();
 }
@@ -73,19 +95,19 @@ function safeJson<T>(s: string | null | undefined, fallback: T): T {
 export async function getPosts(): Promise<Post[]> {
   await ensureDb();
   const res = await db.execute(`SELECT * FROM posts ORDER BY date DESC`);
-  return res.rows.map((r) => toPost(r as unknown as RawRow));
+  return normalizeBlobUrls(res.rows.map((r) => toPost(r as unknown as RawRow)));
 }
 
 export async function getPostById(id: string): Promise<Post | undefined> {
   await ensureDb();
   const res = await db.execute({ sql: `SELECT * FROM posts WHERE id = ?`, args: [id] });
-  return res.rows[0] ? toPost(res.rows[0] as unknown as RawRow) : undefined;
+  return res.rows[0] ? normalizeBlobUrls(toPost(res.rows[0] as unknown as RawRow)) : undefined;
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | undefined> {
   await ensureDb();
   const res = await db.execute({ sql: `SELECT * FROM posts WHERE slug = ?`, args: [slug] });
-  return res.rows[0] ? toPost(res.rows[0] as unknown as RawRow) : undefined;
+  return res.rows[0] ? normalizeBlobUrls(toPost(res.rows[0] as unknown as RawRow)) : undefined;
 }
 
 export async function createPost(input: PostInput): Promise<Post> {
@@ -198,14 +220,16 @@ async function uniqueSlug(slug: string, exceptId?: string): Promise<string> {
 export async function getFriends(): Promise<Friend[]> {
   await ensureDb();
   const res = await db.execute(`SELECT * FROM friends ORDER BY createdAt DESC`);
-  return res.rows.map((r) => ({
-    id: String(r.id),
-    name: String(r.name),
-    url: String(r.url),
-    avatar: String(r.avatar ?? ""),
-    desc: String(r.desc ?? ""),
-    createdAt: String(r.createdAt),
-  }));
+  return normalizeBlobUrls(
+    res.rows.map((r) => ({
+      id: String(r.id),
+      name: String(r.name),
+      url: String(r.url),
+      avatar: String(r.avatar ?? ""),
+      desc: String(r.desc ?? ""),
+      createdAt: String(r.createdAt),
+    }))
+  );
 }
 
 export async function addFriend(input: FriendInput): Promise<Friend> {
@@ -290,7 +314,7 @@ export async function getConfig(): Promise<SiteConfig> {
   await ensureDb();
   const res = await db.execute(`SELECT value FROM config WHERE id = 1`);
   const saved = res.rows[0] ? safeJson<Partial<SiteConfig>>(String(res.rows[0].value), {}) : {};
-  return { ...DEFAULT_CONFIG, ...saved };
+  return normalizeBlobUrls({ ...DEFAULT_CONFIG, ...saved });
 }
 
 export async function saveConfig(input: Partial<SiteConfig>): Promise<SiteConfig> {
