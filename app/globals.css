@@ -950,14 +950,20 @@ button {
   text-overflow: ellipsis;
 }
 
-/* 图片墙轮播预览 */
+/* 图片墙轮播预览（参照 boke.hiromu.top：玻璃圆角卡 + 交叉渐隐 + 悬停放大 + 右下胶囊点） */
 .photo-carousel {
   position: relative;
   height: 150px;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: 24px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
   flex: 1;
   min-height: 0;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
 }
 
 .photo-carousel-slide {
@@ -966,7 +972,7 @@ button {
   width: 100%;
   height: 100%;
   opacity: 0;
-  transition: opacity 0.9s ease;
+  transition: opacity 1.2s ease;
   z-index: 1;
   display: block;
 }
@@ -982,77 +988,55 @@ button {
   object-fit: cover;
   display: block;
   max-width: none;
+  transition: transform 1s ease;
+  will-change: transform;
 }
 
-.carousel-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 6;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0, 0, 0, 0.35);
-  color: #fff;
-  font-size: 17px;
-  line-height: 1;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.3s ease, background 0.3s ease;
+/* 悬停缓慢放大，同参考站 group-hover:scale-105 */
+.photo-carousel:hover .photo-carousel-slide.active img {
+  transform: scale(1.05);
 }
 
-.photo-carousel:hover .carousel-arrow,
-.photo-carousel:focus-within .carousel-arrow {
-  opacity: 1;
-}
-
-.carousel-arrow:hover {
-  background: rgba(0, 0, 0, 0.6);
-}
-
-.carousel-arrow.prev {
-  left: 8px;
-}
-
-.carousel-arrow.next {
-  right: 8px;
-}
-
+/* 右下角胶囊指示点：当前张变宽并显示主题色 */
 .carousel-dots {
   position: absolute;
-  bottom: 8px;
-  left: 0;
-  right: 0;
+  bottom: 14px;
+  right: 18px;
   z-index: 6;
   display: flex;
-  justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  align-items: center;
 }
 
 .carousel-dots button {
+  height: 6px;
   width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  border-radius: 999px;
   border: none;
   padding: 0;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.4);
   cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition: width 0.5s ease, background 0.3s ease;
+}
+
+.carousel-dots button:hover {
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .carousel-dots button.on {
-  background: #fff;
-  transform: scale(1.35);
+  width: 24px;
+  background: var(--accent);
 }
 
 @media (max-width: 768px) {
-  .carousel-arrow {
-    opacity: 0.8;
+  .photo-carousel {
+    height: 230px;
+    border-radius: 20px;
   }
 
-  .photo-carousel {
-    height: 140px;
+  .carousel-dots {
+    bottom: 10px;
+    right: 12px;
   }
 }
 
@@ -1061,9 +1045,9 @@ button {
   display: none;
 }
 
-/* 电脑端：竖屏图需要更高容器显示完整 */
+/* 电脑端：竖屏图需要更高容器显示完整，参照参考站 min-h 420px */
 .carousel-desktop .photo-carousel {
-  height: 300px;
+  height: 400px;
 }
 
 @media (max-width: 768px) {
