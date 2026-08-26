@@ -5,11 +5,12 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const keywords = searchParams.get("keywords")?.trim() || "";
   const limit = Math.min(30, Math.max(1, Number(searchParams.get("limit")) || 12));
+  const source = searchParams.get("source") || "";
   if (!keywords) {
     return NextResponse.json({ error: "缺少 keywords 参数" }, { status: 400 });
   }
   try {
-    const songs = await searchSongs(keywords, limit);
+    const songs = await searchSongs(keywords, limit, source);
     return NextResponse.json({ songs });
   } catch (e) {
     return NextResponse.json(

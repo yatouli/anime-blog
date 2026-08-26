@@ -26,6 +26,7 @@ export default function MusicPlayer() {
   const [error, setError] = useState("");
   const [seekPreview, setSeekPreview] = useState<number | null>(null);
   const seekRef = useRef<{ dragging: boolean }>({ dragging: false });
+  const [isPreview, setIsPreview] = useState(false);
 
   // 播放状态同步到 <body>：背景光斑随音乐脉动
   useEffect(() => {
@@ -37,12 +38,34 @@ export default function MusicPlayer() {
 
   const loadAndPlay = useCallback(async (song: MusicSong) => {
     try {
+      setIsPreview(false);
       // iTunes 源歌曲自带试听音频，直接播放；网易云源需请求 songurl
       let url = song.previewUrl;
       if (!url) {
         const res = await fetch(`/api/music/songurl?id=${song.id}`);
         const data = await res.json();
         url = data?.url as string | undefined;
+      }
+      if (!url && song.source === "netease") {
+        // 网易云 VIP 歌曲拿不到完整音频：自动搜 iTunes 同名歌曲，播放 30 秒试听兜底
+        try {
+          const itRes = await fetch(
+            `/api/music/search?keywords=${encodeURIComponent(
+              `${song.name} ${song.artist}`
+            )}&limit=3&source=itunes`
+          );
+          const itData = await itRes.json();
+          const alt = (Array.isArray(itData.songs) ? itData.songs : []).find(
+            (s: MusicSong) => s.previewUrl
+          );
+          if (alt?.previewUrl) {
+            url = alt.previewUrl;
+            setIsPreview(true);
+            setError("该歌曲需 VIP，已自动切换为 30 秒试听");
+          }
+        } catch {
+          /* 试听兜底失败则走统一报错 */
+        }
       }
       if (!url) {
         setError("这首歌暂时无法播放（可能受版权限制）");
@@ -96,11 +119,29 @@ export default function MusicPlayer() {
 
   const next = () => {
     if (queue.length === 0) return;
+    const audio = audioRef.current;
+    // 队列只有一首：从头重播
+    if (queue.length === 1) {
+      if (audio) {
+        audio.currentTime = 0;
+        void audio.play();
+      }
+      return;
+    }
     setIndex((index + 1) % queue.length);
   };
 
   const prev = () => {
     if (queue.length === 0) return;
+    const audio = audioRef.current;
+    // 队列只有一首：从头重播
+    if (queue.length === 1) {
+      if (audio) {
+        audio.currentTime = 0;
+        void audio.play();
+      }
+      return;
+    }
     setIndex((index - 1 + queue.length) % queue.length);
   };
 
@@ -183,6 +224,7 @@ export default function MusicPlayer() {
     <>
       <audio
         ref={audioRef}
+        loop={queue.length === 1}
         onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
         onDurationChange={(e) =>
           setDuration(e.currentTarget.duration || 0)
@@ -226,7 +268,10 @@ export default function MusicPlayer() {
 
         {/* 信息 */}
         <div className="mp-info">
-          <div className="mp-title">{current?.name ?? "未在播放"}</div>
+          <div className="mp-title">
+            {current?.name ?? "未在播放"}
+            {isPreview && <span className="mp-preview-badge">30秒试听</span>}
+          </div>
           <div className="mp-artist">
             {current ? `${current.artist} · ${current.album}` : "去搜索一首歌吧"}
           </div>

@@ -2389,6 +2389,31 @@ body.music-playing .petal {
   text-overflow: ellipsis;
 }
 
+.mp-preview-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-radius: 999px;
+  vertical-align: 2px;
+  animation: mp-badge-in 0.3s ease;
+}
+
+@keyframes mp-badge-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .mp-artist {
   font-size: 12px;
   color: var(--text-dim);
