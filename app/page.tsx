@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
-import Clock from "@/components/Clock";
 import PostCard from "@/components/PostCard";
 import TypingText from "@/components/TypingText";
 import { getPosts } from "@/lib/store";
@@ -13,32 +12,33 @@ export default async function Home() {
 
   return (
     <>
-      {/* Hero */}
+      {/* Hero：简约全屏，标题居左，头像居右 */}
       <section className="hero">
-        <div className="hero-avatar-wrap">
-          <Avatar emoji={site.avatar} className="hero-avatar glass" alt={site.author} />
+        <div className="hero-left">
+          <h1 className="hero-title">{site.name}</h1>
+          <p className="hero-slogan">
+            <TypingText
+              text={site.slogan}
+              speed={120}
+              deleteSpeed={70}
+              startDelay={1600}
+              holdTime={2400}
+              loop
+            />
+          </p>
+          <div className="hero-actions">
+            <Link href="/posts" className="btn primary">
+              📖 开始阅读
+            </Link>
+            <Link href="/archive" className="btn">
+              🗂️ 时光归档
+            </Link>
+          </div>
         </div>
-        <h1 className="hero-title">{site.name}</h1>
-        <p className="hero-slogan">
-          <TypingText
-            text={site.slogan}
-            speed={120}
-            deleteSpeed={70}
-            startDelay={1900}
-            holdTime={2400}
-            loop
-          />
-        </p>
-        <div className="hero-actions">
-          <Link href="/posts" className="btn primary">
-            📖 开始阅读
-          </Link>
-          <Link href="/gallery" className="btn">
-            🖼️ 逛逛图片墙
-          </Link>
-        </div>
-        <div className="hero-clock">
-          <Clock variant="greeting" />
+        <div className="hero-right">
+          <div className="hero-avatar-wrap">
+            <Avatar emoji={site.avatar} className="hero-avatar glass" alt={site.author} />
+          </div>
         </div>
       </section>
 
