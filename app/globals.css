@@ -595,6 +595,207 @@ button {
   }
 }
 
+/* ============ 时光河流归档（参考 hiromu.top/timeline） ============ */
+.river-wrap {
+  max-width: 100%;
+}
+
+.river-loading-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: -2px;
+}
+
+.river-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: grab;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 8px 0 16px;
+}
+
+.river-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.river-scroll:active {
+  cursor: grabbing;
+}
+
+.river-canvas {
+  position: relative;
+}
+
+.river-svg {
+  display: block;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 河线绘制动画 */
+.river-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: river-draw 1.8s ease-in-out forwards;
+}
+
+@keyframes river-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.river-fade {
+  opacity: 0;
+  animation: river-fade 1s ease 0.8s forwards;
+}
+
+@keyframes river-fade {
+  to {
+    opacity: inherit;
+  }
+}
+
+/* 卡片 */
+.river-card {
+  transition: transform 0.25s ease;
+}
+
+.river-card:hover {
+  transform: translateY(-4px);
+}
+
+.river-card-inner {
+  display: block;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: var(--glass-shadow);
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.river-card-inner:hover {
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.24);
+  background: var(--card-hover);
+}
+
+.river-card-cover {
+  position: relative;
+  height: 100px;
+  background-size: cover;
+  background-position: center;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.river-card-emoji {
+  font-size: 40px;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+}
+
+.river-card-date-badge {
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+  font-size: 10px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 8px;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+.river-card-body {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.river-card-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.river-card-excerpt {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.river-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.river-card-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.river-card-views {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.river-hint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin: 6px 0 0;
+}
+
+/* 移动端卡片 */
+@media (max-width: 768px) {
+  .river-card-cover {
+    height: 70px;
+  }
+
+  .river-card-emoji {
+    font-size: 30px;
+  }
+
+  .river-card-body {
+    padding: 8px 10px;
+    gap: 4px;
+  }
+
+  .river-card-title {
+    font-size: 12px;
+  }
+
+  .river-card-excerpt {
+    font-size: 10px;
+  }
+}
+
 /* ============ Section ============ */
 .section {
   margin-top: 44px;
