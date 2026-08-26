@@ -14,8 +14,8 @@ export default async function GalleryPage() {
       <header className="page-head">
         <h1>🖼️ 图片墙</h1>
         <p>
-          默认是错落的重叠拼贴，点击任意一张展开成网格，再点图片看大图～
-          想换自己的图？后台「站点设置 → 图片墙」上传即可。
+          壁纸自动归档成相册，点击相册展开看照片，再点照片看大图～
+          想传新壁纸？后台「站点设置 → 图片墙」上传即可。
         </p>
       </header>
       <GalleryWall items={gallery} />
