@@ -1052,6 +1052,21 @@ button {
   }
 }
 
+/* 轮播设备分流：电脑=竖屏分类，手机=横屏分类（纯 CSS 切换） */
+.carousel-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .carousel-desktop {
+    display: none;
+  }
+
+  .carousel-mobile {
+    display: block;
+  }
+}
+
 /* 友链预览 */
 .home-friends {
   display: flex;
