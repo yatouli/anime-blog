@@ -46,8 +46,8 @@ export default function MusicPlayer() {
         const data = await res.json();
         url = data?.url as string | undefined;
       }
-      if (!url && song.source === "netease") {
-        // 网易云 VIP 歌曲拿不到完整音频：自动搜 iTunes 同名歌曲，播放 30 秒试听兜底
+      if (!url && song.source !== "itunes") {
+        // 酷我受限歌曲拿不到完整音频：自动搜 iTunes 同名歌曲，播放 30 秒试听兜底
         try {
           const itRes = await fetch(
             `/api/music/search?keywords=${encodeURIComponent(

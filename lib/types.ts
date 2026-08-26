@@ -74,7 +74,8 @@ export interface SiteConfig {
 }
 
 export interface MusicSong {
-  id: number;
+  /** 酷我为 "MUSIC_xxx" 字符串；iTunes 为负数数字 */
+  id: number | string;
   name: string;
   artist: string;
   album: string;
@@ -82,7 +83,7 @@ export interface MusicSong {
   duration: number; // ms
   /** iTunes 源歌曲的试听音频（无需再请求 songurl） */
   previewUrl?: string;
-  source?: "netease" | "itunes";
+  source?: "netease" | "itunes" | "kuwo";
   /** 列表内唯一键（iTunes 可能有重复 trackId） */
   key?: string;
 }

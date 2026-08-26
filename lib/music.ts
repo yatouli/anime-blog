@@ -1,116 +1,79 @@
 import type { MusicSong } from "./types";
 
 /**
- * 音乐多数据源：
- * - GdStudio 聚合节点（music-api.gdstudio.xyz）：代理网易云，海外可访问；
- *   免费歌曲返回完整音频（完整播放），VIP 歌曲返回空 URL。
- * - 网易云直连（music.163.com）：Vercel 海外服务器下不可用，保留作国内部署时的兜底。
- * - iTunes Search API：全球可用（苹果 CDN），自带 30 秒试听音频，作为最后兜底。
- * 搜索顺序：GdStudio 网易 → iTunes；播放顺序：GdStudio 完整曲 → 网易直连 → iTunes 试听。
+ * 音乐双数据源（针对 Vercel 海外部署的可用性设计）：
+ * - 酷我音乐（search.kuwo.cn / antiserver.kuwo.cn）：海外可访问，
+ *   免费歌曲返回【完整 mp3】实现完整播放，搜索自带封面/时长。
+ * - iTunes Search API：全球可用（苹果 CDN），自带 30 秒试听音频，作为兜底。
+ * 网易云直连（music.163.com）在海外 IP 下 weapi 会被静默丢弃，故不再使用。
  */
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
-const GD = "https://music-api.gdstudio.xyz/api.php";
-const REF = "https://music.163.com";
-const BASE = "https://music.163.com";
+const KW_REF = "https://www.kuwo.cn/";
 
-async function neteaseFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: {
-      "User-Agent": UA,
-      Referer: REF,
-      Cookie: "os=pc",
-      "Accept-Language": "zh-CN,zh;q=0.9",
-    },
-    signal: AbortSignal.timeout(5000),
-  });
-  if (!res.ok) throw new Error(`netease api ${res.status}`);
-  return (await res.json()) as T;
-}
-
-async function gdFetch<T>(params: string): Promise<T> {
-  const res = await fetch(`${GD}?${params}`, {
-    headers: { "User-Agent": UA },
-    signal: AbortSignal.timeout(8000),
-  });
-  if (!res.ok) throw new Error(`gdstudio api ${res.status}`);
-  return (await res.json()) as T;
-}
-
-interface RawSong {
-  id: number;
-  name: string;
-  ar?: { name: string }[];
-  al?: { name: string; picUrl?: string };
-  artists?: { name: string }[];
-  album?: { name: string; picUrl?: string };
-  dt?: number;
-  duration?: number;
-}
-
-function normalize(s: RawSong): MusicSong {
-  const artist = (s.ar?.[0]?.name || s.artists?.[0]?.name || "未知歌手")
-    .split(" ")[0]
+/** 简单的 HTML 实体解码（酷我搜索返回 &nbsp; 等实体） */
+function decodeHtml(s: string): string {
+  return s
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
     .trim();
-  const album = s.al?.name || s.album?.name || "未知专辑";
-  const albumPic =
-    (s.al?.picUrl || s.album?.picUrl || "").replace(/^http:\/\//, "https://") || "";
-  const duration = s.dt ?? s.duration ?? 0;
-  return { id: s.id, name: s.name, artist, album, albumPic, duration };
 }
 
-/* ---------------- GdStudio 网易云源（海外可用的完整曲目） ---------------- */
+/* ---------------- 酷我源（完整播放） ---------------- */
 
-interface GdSong {
-  id?: string;
-  name?: string;
-  artist?: string[];
-  album?: string;
-  pic_id?: string;
-  url_id?: string;
+interface KuwoRaw {
+  abslist?: {
+    MUSICRID?: string;
+    SONGNAME?: string;
+    ARTIST?: string;
+    ALBUM?: string;
+    DURATION?: string;
+    web_albumpic_short?: string;
+    web_artistpic_short?: string;
+    payInfo?: { cannotOnlinePlay?: string };
+  }[];
 }
 
-function fromGd(s: GdSong): MusicSong {
-  return {
-    id: Number(s.id ?? s.url_id ?? 0),
-    name: s.name || "未知歌曲",
-    artist: (s.artist?.[0] || "未知歌手").split(" ")[0].trim(),
-    album: s.album || "未知专辑",
-    albumPic: "",
-    duration: 0,
-    source: "netease",
-  };
-}
-
-/** GdStudio 网易云搜索；返回含专辑封面的歌曲列表 */
-async function gdSearch(keywords: string, limit = 12): Promise<MusicSong[]> {
-  const list = await gdFetch<GdSong[]>(
-    `types=search&source=netease&name=${encodeURIComponent(keywords)}&count=${limit}`
+/** 酷我搜索；返回含完整播放地址的歌曲列表（剔除 KTV/伴奏等杂项） */
+async function kuwoSearch(keywords: string, limit = 12): Promise<MusicSong[]> {
+  const res = await fetch(
+    `https://search.kuwo.cn/r.s?all=${encodeURIComponent(
+      keywords
+    )}&ft=music&itemset=web_2013&pn=0&rn=${limit}&rformat=json&encoding=utf8`,
+    { headers: { "User-Agent": UA, Referer: KW_REF }, signal: AbortSignal.timeout(10000) }
   );
-  if (!Array.isArray(list) || list.length === 0) return [];
-  const songs = list.map(fromGd).filter((s) => s.id > 0);
-
-  // 并行补齐专辑封面（单个失败不影响结果）
-  await Promise.allSettled(
-    songs.map(async (s) => {
-      try {
-        const pic = await gdFetch<{ url?: string }>(
-          `types=pic&source=netease&id=${s.id}`
-        );
-        if (pic?.url) s.albumPic = pic.url.replace(/^http:\/\//, "https://");
-      } catch {
-        /* 封面拿不到就用占位 */
-      }
-    })
-  );
-  return songs;
+  if (!res.ok) throw new Error(`kuwo search ${res.status}`);
+  const text = await res.text();
+  // 酷我返回 Python 风格单引号 JSON，转成标准 JSON 解析
+  const j = JSON.parse(text.replace(/'/g, '"')) as KuwoRaw;
+  return (j.abslist || [])
+    .filter((s) => s.MUSICRID && s.SONGNAME)
+    .filter((s) => !/KTV|伴奏|铃声/i.test(s.SONGNAME || ""))
+    .map((s) => ({
+      id: s.MUSICRID as string,
+      name: decodeHtml(s.SONGNAME || ""),
+      artist: decodeHtml(s.ARTIST || "未知歌手"),
+      album: decodeHtml(s.ALBUM || "未知专辑"),
+      albumPic: (s.web_albumpic_short || "").replace("{size}", "300"),
+      duration: (Number(s.DURATION) || 0) * 1000,
+      source: "kuwo",
+    }));
 }
 
-/** GdStudio 网易云播放地址（免费歌曲返回完整音频，VIP 返回空） */
-async function gdSongUrl(id: number): Promise<string> {
-  const j = await gdFetch<{ url?: string }>(
-    `types=url&source=netease&id=${id}`
+/** 酷我播放地址（免费歌曲返回完整 mp3；受限歌曲返回试听或空） */
+async function kuwoUrl(rid: string): Promise<string> {
+  const res = await fetch(
+    `https://antiserver.kuwo.cn/anti.s?type=convert_url3&rid=${encodeURIComponent(
+      rid
+    )}&format=mp3&response=url`,
+    { headers: { "User-Agent": UA, Referer: KW_REF }, signal: AbortSignal.timeout(10000) }
   );
+  if (!res.ok) throw new Error(`kuwo url ${res.status}`);
+  const j = (await res.json()) as { code?: number; url?: string };
   const url = j?.url || "";
   return url ? url.replace(/^http:\/\//, "https://") : "";
 }
@@ -129,7 +92,7 @@ interface ItunesResult {
 
 function fromItunes(r: ItunesResult, idx: number): MusicSong {
   return {
-    id: -Math.abs(r.trackId), // 负数 id 标记为 iTunes 源，避免与网易 id 冲突
+    id: -Math.abs(r.trackId), // 负数 id 标记为 iTunes 源，避免与酷我 id 冲突
     name: r.trackName || "未知歌曲",
     artist: r.artistName || "未知歌手",
     album: r.collectionName || "未知专辑",
@@ -157,8 +120,8 @@ async function itunesSearch(keywords: string, limit = 12): Promise<MusicSong[]> 
 
 /**
  * 搜索歌曲：
- * - source = "itunes"：只走 iTunes（用于 VIP 歌曲的试听兜底）
- * - 默认：GdStudio 网易云 → iTunes
+ * - source = "itunes"：只走 iTunes（用于 VIP/受限歌曲的试听兜底）
+ * - 默认：酷我音乐 → iTunes
  */
 export async function searchSongs(
   keywords: string,
@@ -169,46 +132,27 @@ export async function searchSongs(
     return itunesSearch(keywords, limit);
   }
   try {
-    const gd = await gdSearch(keywords, limit);
-    if (gd.length > 0) return gd;
+    const kw = await kuwoSearch(keywords, limit);
+    if (kw.length > 0) return kw;
   } catch {
-    /* GdStudio 不可用则走 iTunes */
+    /* 酷我不可用则走 iTunes */
   }
   return itunesSearch(keywords, limit);
 }
 
-/** 批量获取歌曲详情（网易云直连；海外部署下通常不可用） */
-export async function songDetail(ids: number[]): Promise<MusicSong[]> {
-  if (!ids.length) return [];
-  const c = ids.map((id) => `{"id":${id}}`).join(",");
-  const data = await neteaseFetch<{ songs?: RawSong[]; code?: number }>(
-    `/api/v3/song/detail?c=[${c}]`
-  );
-  return (data.songs || []).map(normalize);
-}
-
 /**
- * 获取网易云可播放音频地址：
- * 1) GdStudio 节点（海外可用，免费歌返回完整曲目）
- * 2) 网易云直连（国内/对网易友好的网络可用）
- * 均失败返回空字符串，由前端决定是否走 iTunes 试听兜底。
+ * 获取可播放音频地址：
+ * - 字符串 id：酷我 MUSIC_xxx，返回完整 mp3（受限歌曲可能返回试听或空）
+ * - 数字 id：历史网易云 id，海外不可用，直接返回空（由前端走 iTunes 兜底）
  */
-export async function songUrl(id: number, br = 320000): Promise<string> {
-  try {
-    const url = await gdSongUrl(id);
-    if (url) return url;
-  } catch {
-    /* 继续尝试直连 */
-  }
-  try {
-    const data = await neteaseFetch<{
-      data?: { url: string | null }[];
-      code?: number;
-    }>(`/api/song/enhance/player/url?ids=[${id}]&br=${br}`);
-    const url = data.data?.[0]?.url || "";
-    if (url) return url.replace(/^http:\/\//, "https://");
-  } catch {
-    /* 直连也失败 */
+export async function songUrl(id: number | string): Promise<string> {
+  if (typeof id === "string" && id.startsWith("MUSIC_")) {
+    try {
+      const url = await kuwoUrl(id);
+      if (url) return url;
+    } catch {
+      /* 酷我失败，返回空走前端兜底 */
+    }
   }
   return "";
 }

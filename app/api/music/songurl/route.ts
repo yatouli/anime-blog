@@ -3,7 +3,7 @@ import { songUrl } from "@/lib/music";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const id = Number(searchParams.get("id"));
+  const id = searchParams.get("id")?.trim() || "";
   if (!id) {
     return NextResponse.json({ error: "缺少 id 参数" }, { status: 400 });
   }
