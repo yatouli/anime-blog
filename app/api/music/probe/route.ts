@@ -26,11 +26,14 @@ export async function GET(req: Request) {
       method,
       headers,
       body,
+      redirect: "manual",
       signal: AbortSignal.timeout(15000),
     });
     const text = await res.text();
     return NextResponse.json({
       status: res.status,
+      ct: res.headers.get("content-type") || "",
+      loc: res.headers.get("location") || "",
       len: text.length,
       head: text.slice(0, 600),
     });
