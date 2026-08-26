@@ -9,7 +9,9 @@ import { getConfig, getPosts } from "@/lib/store";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [posts, { gallery }] = await Promise.all([getPosts(), getConfig()]);
+  const [posts, { albums, gallery }] = await Promise.all([getPosts(), getConfig()]);
+  // 首页轮播图片：优先合并所有分类的图片，否则回退 gallery
+  const carouselItems = albums.length > 0 ? albums.flatMap((a) => a.photos) : gallery;
 
   return (
     <>
@@ -34,7 +36,7 @@ export default async function Home() {
       {/* 第二行：图片墙 + 右列（最新文章 + 友链/数据） */}
       <div className="home-grid">
         <div className="home-span-5">
-          <PhotoPreview items={gallery} />
+          <PhotoPreview items={carouselItems} />
         </div>
         <div className="home-span-7 home-col">
           <section className="home-card glass">

@@ -33,9 +33,17 @@ export default function PhotoPreview({ items }: { items: WallItem[] }) {
               key={it.src + i}
               href="/gallery"
               className={`photo-carousel-slide ${i === idx ? "active" : ""}`}
+              style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={it.src} alt={it.title} loading="lazy" />
+              <img
+                src={it.src}
+                alt={it.title}
+                loading="lazy"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                }}
+              />
             </Link>
           ))}
 
