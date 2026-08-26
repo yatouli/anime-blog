@@ -38,21 +38,28 @@ interface KuwoRaw {
   }[];
 }
 
-/** 酷我搜索；返回含完整播放地址的歌曲列表（剔除 KTV/伴奏等杂项） */
+/** 酷我搜索；返回含完整播放地址的歌曲列表（优先原版，剔除 DJ/翻唱等杂项） */
 async function kuwoSearch(keywords: string, limit = 12): Promise<MusicSong[]> {
   const res = await fetch(
     `https://search.kuwo.cn/r.s?all=${encodeURIComponent(
       keywords
-    )}&ft=music&itemset=web_2013&pn=0&rn=${limit}&rformat=json&encoding=utf8`,
+    )}&ft=music&itemset=web_2013&pn=0&rn=${limit * 3}&rformat=json&encoding=utf8`,
     { headers: { "User-Agent": UA, Referer: KW_REF }, signal: AbortSignal.timeout(10000) }
   );
   if (!res.ok) throw new Error(`kuwo search ${res.status}`);
   const text = await res.text();
   // 酷我返回 Python 风格单引号 JSON，转成标准 JSON 解析
   const j = JSON.parse(text.replace(/'/g, '"')) as KuwoRaw;
-  return (j.abslist || [])
+  const BAD = /KTV|伴奏|铃声|DJ|纯音乐|Remix|混音|Live|现场|演唱会|翻唱|完整版|慢摇|串烧/i;
+  const items = (j.abslist || [])
     .filter((s) => s.MUSICRID && s.SONGNAME)
-    .filter((s) => !/KTV|伴奏|铃声/i.test(s.SONGNAME || ""))
+    .filter((s) => s.payInfo?.cannotOnlinePlay !== "1")
+    .filter((s) => !BAD.test(s.SONGNAME || ""));
+  // 无括号的原版名称排前面
+  const plain = items.filter((s) => !/[（(]/.test(s.SONGNAME || ""));
+  const rest = items.filter((s) => /[（(]/.test(s.SONGNAME || ""));
+  return [...plain, ...rest]
+    .slice(0, limit)
     .map((s) => ({
       id: s.MUSICRID as string,
       name: decodeHtml(s.SONGNAME || ""),
