@@ -38,7 +38,7 @@ export async function GET(req: Request) {
       ct: res.headers.get("content-type") || "",
       loc: res.headers.get("location") || "",
       len: text.length,
-      head: text.slice(0, 600),
+      head: text.slice(0, 4000),
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 502 });
