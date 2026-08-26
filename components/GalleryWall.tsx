@@ -42,10 +42,11 @@ export default function GalleryWall({ items }: { items: WallItem[] }) {
       <div className={`gallery-wall ${mode}`}>
         {items.map((it, i) => {
           const pos = MOSAIC[i % MOSAIC.length];
+          const rot = (((i * 37) % 5) - 2) * 0.9; // 拍立得轻微旋转
           return (
             <figure
               key={it.src + i}
-              className="gallery-tile"
+              className={`gallery-tile ${mode === "grid" ? "polaroid" : ""}`}
               style={
                 mode === "mosaic"
                   ? {
@@ -54,13 +55,16 @@ export default function GalleryWall({ items }: { items: WallItem[] }) {
                       width: pos.w,
                       transform: `rotate(${pos.r}deg)`,
                     }
-                  : undefined
+                  : ({ "--rot": `${rot}deg` } as React.CSSProperties)
               }
               onClick={() => (mode === "mosaic" ? setMode("grid") : openLightbox(i))}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={it.src} alt={it.title} loading="lazy" />
-              <figcaption>{it.title}</figcaption>
+              {mode === "grid" && <span className="polaroid-tape" aria-hidden />}
+              <div className="polaroid-inner">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={it.src} alt={it.title} loading="lazy" />
+                <figcaption>{it.title}</figcaption>
+              </div>
             </figure>
           );
         })}

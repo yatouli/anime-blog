@@ -1500,26 +1500,87 @@ button {
   opacity: 1;
 }
 
-/* —— 网格模式 —— */
+/* —— 网格模式：拍立得风格（参考 hiromu.top/photowall） —— */
 .gallery-wall.grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 18px;
+  gap: 26px;
   align-items: start;
 }
 
-.gallery-wall.grid .gallery-tile {
-  aspect-ratio: 4 / 3;
+.gallery-tile.polaroid {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.polaroid-inner {
+  position: relative;
+  background: #fff;
+  padding: 8px 8px 30px;
+  border-radius: 2px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+  transform: rotate(var(--rot, 0deg));
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.gallery-wall.grid .gallery-tile:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.25);
+[data-theme="dark"] .polaroid-inner {
+  background: #242040;
+}
+
+.gallery-tile.polaroid:hover .polaroid-inner {
+  transform: rotate(0deg) scale(1.045);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.3);
+}
+
+.polaroid-inner img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 1px;
+}
+
+.polaroid-inner figcaption {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  text-align: center;
+  font-size: 12px;
+  font-style: italic;
+  font-family: Georgia, "Times New Roman", serif;
+  color: #555;
+  opacity: 1;
+  background: none;
+  padding: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme="dark"] .polaroid-inner figcaption {
+  color: #b9b3d9;
+}
+
+.polaroid-tape {
+  position: absolute;
+  top: -12px;
+  left: 14px;
+  width: 46px;
+  height: 15px;
+  background: rgba(255, 205, 130, 0.65);
+  transform: rotate(-6deg);
+  border-radius: 2px;
+  z-index: 2;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 .gallery-wall.grid .gallery-tile img:hover {
-  transform: scale(1.06);
+  transform: none;
 }
 
 /* —— 灯箱 —— */
@@ -4058,7 +4119,7 @@ body.music-playing .petal {
   /* 图片墙网格模式：手机上两列小图 */
   .gallery-wall.grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
+    gap: 16px;
   }
 
   /* 封面入场动画：手机端紧凑 */
