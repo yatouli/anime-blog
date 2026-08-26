@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "icons": "node scripts/generate-icons.mjs",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate:local": "node scripts/migrate-local.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
