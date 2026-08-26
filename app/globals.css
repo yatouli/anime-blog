@@ -1029,34 +1029,63 @@ button {
 }
 
 @media (max-width: 768px) {
-  .photo-carousel {
-    height: 230px;
-    border-radius: 20px;
-  }
-
   .carousel-dots {
     bottom: 10px;
     right: 12px;
   }
 }
 
+/* 图片墙卡片：去掉内边距，图片铺满整列 */
+.photo-card {
+  padding: 0;
+  overflow: hidden;
+  gap: 0;
+  min-height: 420px;
+}
+
+.photo-card .home-card-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
 /* 轮播设备分流：电脑=竖屏分类，手机=横屏分类（纯 CSS 切换） */
+.carousel-desktop {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .carousel-mobile {
   display: none;
 }
 
-/* 电脑端：竖屏图需要更高容器显示完整，参照参考站 min-h 420px */
-.carousel-desktop .photo-carousel {
-  height: 400px;
+.carousel-desktop .photo-carousel,
+.carousel-mobile .photo-carousel {
+  flex: 1;
+  height: auto;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 @media (max-width: 768px) {
+  .photo-card {
+    min-height: 240px;
+  }
+
   .carousel-desktop {
     display: none;
   }
 
   .carousel-mobile {
-    display: block;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
   }
 }
 
@@ -1163,6 +1192,8 @@ button {
   }
 
   .home-span-8,
+  .home-span-7,
+  .home-span-5,
   .home-span-4 {
     grid-column: span 1;
   }

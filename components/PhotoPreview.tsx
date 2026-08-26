@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { Album, WallItem } from "@/lib/types";
@@ -125,14 +124,7 @@ export default function PhotoPreview({ albums }: { albums: Album[] }) {
   const mobileItems = pick(albums, "横屏");
 
   return (
-    <section className="home-card glass">
-      <div className="home-card-head">
-        <h3>🖼️ 图片墙</h3>
-        <Link href="/gallery" className="home-card-more">
-          全部 →
-        </Link>
-      </div>
-
+    <section className="home-card glass photo-card">
       <div className="carousel-desktop">
         <Carousel items={desktopItems} />
       </div>
