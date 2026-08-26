@@ -1,6 +1,9 @@
-import Link from "next/link";
+import CommentsPreview from "@/components/CommentsPreview";
+import FriendsPreview from "@/components/FriendsPreview";
+import PhotoPreview from "@/components/PhotoPreview";
 import PostCard from "@/components/PostCard";
 import ProfileCard from "@/components/ProfileCard";
+import SiteStats from "@/components/SiteStats";
 import { getPosts } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -10,52 +13,53 @@ export default async function Home() {
 
   return (
     <>
-      {/* 首屏：个人名片卡片（头像/名字/介绍/统计/社交） */}
-      <ProfileCard />
+      {/* 搜索栏 */}
+      <form action="/search" className="home-search glass" role="search">
+        <input type="search" name="q" placeholder="🔍 搜索文章 / 标签…" />
+        <button type="submit" className="btn primary small">
+          搜索
+        </button>
+      </form>
 
-      {/* 最近文章 */}
-      <section className="section">
-        <div className="section-head">
-          <h2>✨ 最近文章</h2>
-          <Link href="/posts" className="section-more">
-            查看全部 →
-          </Link>
+      {/* 第一行：个人信息 + 最新评论 */}
+      <div className="home-grid">
+        <div className="home-span-8">
+          <ProfileCard />
         </div>
-        <div className="post-grid">
-          {posts.map((p) => (
-            <PostCard key={p.id} post={p} />
-          ))}
+        <div className="home-span-4">
+          <CommentsPreview />
         </div>
-      </section>
+      </div>
 
-      {/* 站点特色 */}
-      <section className="section">
-        <div className="section-head">
-          <h2>🎀 这个小窝有什么</h2>
+      {/* 第二行：图片墙 + 右列（最新文章 + 友链/数据） */}
+      <div className="home-grid">
+        <div className="home-span-4">
+          <PhotoPreview />
         </div>
-        <div className="feature-grid">
-          <Link href="/posts" className="feature glass">
-            <span className="feature-icon">📝</span>
-            <h3>写文章</h3>
-            <p>后台可视化编辑，Markdown 加持，网格卡片展示。</p>
-          </Link>
-          <Link href="/gallery" className="feature glass">
-            <span className="feature-icon">🎵</span>
-            <h3>听音乐</h3>
-            <p>底部常驻播放器，网易云音乐在线搜索点播。</p>
-          </Link>
-          <Link href="/gallery" className="feature glass">
-            <span className="feature-icon">🖼️</span>
-            <h3>图片墙</h3>
-            <p>重叠拼贴 ⇄ 网格布局，一键切换的壁纸收藏夹。</p>
-          </Link>
-          <Link href="/friends" className="feature glass">
-            <span className="feature-icon">🤝</span>
-            <h3>交换友链</h3>
-            <p>提交你的小站，和更多有趣的人相遇。</p>
-          </Link>
+        <div className="home-span-8 home-col">
+          <section className="home-card glass">
+            <div className="home-card-head">
+              <h3>✨ 最近文章</h3>
+              <a className="home-card-more" href="/posts">
+                查看全部 →
+              </a>
+            </div>
+            <div className="home-posts">
+              {posts.map((p) => (
+                <PostCard key={p.id} post={p} />
+              ))}
+            </div>
+          </section>
+          <div className="home-grid">
+            <div className="home-span-8">
+              <FriendsPreview />
+            </div>
+            <div className="home-span-4">
+              <SiteStats />
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
     </>
   );
 }

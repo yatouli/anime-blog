@@ -246,6 +246,28 @@ export async function getCommentsByPost(postId: string): Promise<Comment[]> {
   }));
 }
 
+/** 最近评论（全站） */
+export async function getRecentComments(limit = 5): Promise<Comment[]> {
+  await ensureDb();
+  const res = await db.execute(
+    `SELECT * FROM comments ORDER BY createdAt DESC LIMIT ${Math.min(50, Math.max(1, limit))}`
+  );
+  return res.rows.map((r) => ({
+    id: String(r.id),
+    postId: String(r.postId),
+    name: String(r.name),
+    content: String(r.content),
+    createdAt: String(r.createdAt),
+  }));
+}
+
+/** 评论总数 */
+export async function getCommentCount(): Promise<number> {
+  await ensureDb();
+  const res = await db.execute(`SELECT COUNT(*) AS n FROM comments`);
+  return Number(res.rows[0]?.n ?? 0);
+}
+
 export async function addComment(input: CommentInput): Promise<Comment> {
   await ensureDb();
   const comment: Comment = {
