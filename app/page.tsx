@@ -33,10 +33,10 @@ export default async function Home() {
 
       {/* 第二行：图片墙 + 右列（最新文章 + 友链/数据） */}
       <div className="home-grid">
-        <div className="home-span-4">
+        <div className="home-span-5">
           <PhotoPreview items={gallery} />
         </div>
-        <div className="home-span-8 home-col">
+        <div className="home-span-7 home-col">
           <section className="home-card glass">
             <div className="home-card-head">
               <h3>✨ 最近文章</h3>

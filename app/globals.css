@@ -811,6 +811,16 @@ button {
   min-width: 0;
 }
 
+.home-span-7 {
+  grid-column: span 7;
+  min-width: 0;
+}
+
+.home-span-5 {
+  grid-column: span 5;
+  min-width: 0;
+}
+
 .home-span-4 {
   grid-column: span 4;
   min-width: 0;
@@ -943,7 +953,7 @@ button {
 /* 图片墙轮播预览 */
 .photo-carousel {
   position: relative;
-  height: 220px;
+  height: 150px;
   overflow: hidden;
   border-radius: 14px;
   flex: 1;
@@ -1038,7 +1048,7 @@ button {
   }
 
   .photo-carousel {
-    height: 190px;
+    height: 140px;
   }
 }
 
