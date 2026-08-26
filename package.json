@@ -15,6 +15,8 @@
     "@uiw/react-md-editor": "^4.0.5",
     "@vercel/blob": "^2.8.0",
     "next": "^15.3.3",
+    "pixi-live2d-display": "^0.4.0",
+    "pixi.js": "^7.4.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-markdown": "^10.1.0",

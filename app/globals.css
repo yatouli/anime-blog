@@ -3907,6 +3907,58 @@ img {
 }
 
 /* ============ 桌宠 ============ */
+/* Live2D 看板娘 */
+.live2d-wrap {
+  position: fixed;
+  right: 16px;
+  bottom: 8px;
+  z-index: 95;
+  width: 200px;
+  height: 360px;
+  pointer-events: none;
+}
+
+.live2d-canvas {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  pointer-events: auto;
+  display: block;
+}
+
+.live2d-wrap .pet-bubble {
+  bottom: calc(100% - 40px);
+  pointer-events: auto;
+}
+
+.live2d-wrap .pet-hide {
+  pointer-events: auto;
+}
+
+.live2d-loading {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--glass-bg-strong);
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .live2d-wrap {
+    width: 150px;
+    height: 260px;
+    right: 8px;
+    bottom: 4px;
+  }
+}
+
+/* 旧 emoji 桌宠（保留备用） */
 .pet-wrap {
   position: fixed;
   z-index: 96;

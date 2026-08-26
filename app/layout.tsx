@@ -5,9 +5,9 @@ import BackToTop from "@/components/BackToTop";
 import ClickEffect from "@/components/ClickEffect";
 import ImageLightbox from "@/components/ImageLightbox";
 import IntroCover from "@/components/IntroCover";
+import Live2DMascot from "@/components/Live2DMascot";
 import Nav from "@/components/Nav";
 import MusicPlayer from "@/components/MusicPlayer";
-import Pet from "@/components/Pet";
 import PwaRegister from "@/components/PwaRegister";
 import { site } from "@/lib/site";
 
@@ -80,7 +80,7 @@ export default function RootLayout({
         </footer>
 
         <MusicPlayer />
-        <Pet />
+        <Live2DMascot />
         <BackToTop />
         <ImageLightbox />
         <ClickEffect />
