@@ -8,7 +8,7 @@ export const site = {
   description: "一个二次元风格的毛玻璃博客：写文章、听音乐、晒壁纸、交朋友。",
   avatar: "🌸",
   author: "星野酱",
-  email: "hello@example.com",
+  email: "3996961083@qq.com",
   github: "https://github.com/",
   bilibili: "https://space.bilibili.com/",
   since: 2024,
