@@ -13,7 +13,7 @@ export default function SiteSettings() {
   const [uploading, setUploading] = useState<"bg" | "avatar" | "gallery" | null>(null);
   const bgFileRef = useRef<HTMLInputElement>(null);
   const avatarFileRef = useRef<HTMLInputElement>(null);
-  const galleryFileRef = useRef<HTMLInputElement>(null);
+  const albumFileRefs = useRef<Record<string, HTMLInputElement>>({});
 
   useEffect(() => {
     fetch("/api/config")
@@ -21,9 +21,14 @@ export default function SiteSettings() {
       .then((d) => {
         const c = d?.config as SiteConfig;
         if (c) {
-          setCfg(c);
-          setConfig(c);
-          applyConfig(c);
+          // 旧数据兼容：albums 为空时把 gallery 迁移成默认分类
+          const migrated =
+            c.albums.length === 0 && c.gallery.length > 0
+              ? { ...c, albums: [{ id: "default", name: "全部壁纸", photos: c.gallery }] }
+              : c;
+          setCfg(migrated);
+          setConfig(migrated);
+          applyConfig(migrated);
         }
       })
       .catch(() => setErr("加载配置失败"));
@@ -86,7 +91,11 @@ export default function SiteSettings() {
       img.src = url;
     });
 
-  const onUploadGallery = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  /** 上传多张图片到指定分类（数量不限） */
+  const onUploadGallery = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    albumId: string
+  ) => {
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
     if (!files.length || !cfg) return;
@@ -100,7 +109,12 @@ export default function SiteSettings() {
         const title = file.name.replace(/\.[^.]+$/, "") || "未命名";
         added.push({ src: url, title, w, h });
       }
-      preview({ ...cfg, gallery: [...cfg.gallery, ...added].slice(0, 100) });
+      preview({
+        ...cfg,
+        albums: cfg.albums.map((a) =>
+          a.id === albumId ? { ...a, photos: [...a.photos, ...added] } : a
+        ),
+      });
     } catch (ex) {
       setErr(ex instanceof Error ? ex.message : "上传失败");
     } finally {
@@ -108,10 +122,47 @@ export default function SiteSettings() {
     }
   };
 
-  const removeGalleryItem = (idx: number) => {
+  const removeGalleryItem = (albumId: string, idx: number) => {
     if (!cfg) return;
-    const next = cfg.gallery.filter((_, i) => i !== idx);
-    preview({ ...cfg, gallery: next });
+    preview({
+      ...cfg,
+      albums: cfg.albums.map((a) =>
+        a.id === albumId ? { ...a, photos: a.photos.filter((_, i) => i !== idx) } : a
+      ),
+    });
+  };
+
+  const addAlbum = () => {
+    if (!cfg) return;
+    const name = window.prompt("新分类名称：", "新分类");
+    if (!name?.trim()) return;
+    preview({
+      ...cfg,
+      albums: [
+        ...cfg.albums,
+        { id: `album-${Date.now().toString(36)}`, name: name.trim().slice(0, 30), photos: [] },
+      ],
+    });
+  };
+
+  const renameAlbum = (albumId: string) => {
+    if (!cfg) return;
+    const album = cfg.albums.find((a) => a.id === albumId);
+    if (!album) return;
+    const name = window.prompt("分类名称：", album.name);
+    if (!name?.trim()) return;
+    preview({
+      ...cfg,
+      albums: cfg.albums.map((a) =>
+        a.id === albumId ? { ...a, name: name.trim().slice(0, 30) } : a
+      ),
+    });
+  };
+
+  const removeAlbum = (albumId: string) => {
+    if (!cfg) return;
+    if (!window.confirm("删除这个分类？分类里的图片会从图片墙移除（上传的文件本身保留）。")) return;
+    preview({ ...cfg, albums: cfg.albums.filter((a) => a.id !== albumId) });
   };
 
   const save = async () => {
@@ -143,6 +194,9 @@ export default function SiteSettings() {
       overlay: 0,
       avatar: "",
       gallery: [...DEFAULT_CONFIG.gallery],
+      albums: [
+        { id: "default", name: "默认壁纸", photos: [...DEFAULT_CONFIG.gallery] },
+      ],
     };
     preview(def);
   };
@@ -350,60 +404,97 @@ export default function SiteSettings() {
           />
         </section>
 
-        {/* 图片墙 */}
+        {/* 图片墙（分类管理） */}
         <section className="glass settings-card avatar-card">
           <div className="gallery-settings-head">
-            <h3>🖼️ 图片墙</h3>
+            <h3>🖼️ 图片墙分类</h3>
             <div className="cover-upload-actions">
-              <button
-                className="btn small"
-                onClick={() => galleryFileRef.current?.click()}
-                disabled={uploading === "gallery"}
-              >
-                {uploading === "gallery" ? "上传中…" : "＋ 上传图片（可多选）"}
+              <button className="btn small" onClick={addAlbum}>
+                ＋ 新建分类
               </button>
               <button
                 className="btn small"
-                onClick={() => preview({ ...cfg, gallery: [...DEFAULT_CONFIG.gallery] })}
+                onClick={() =>
+                  preview({
+                    ...cfg,
+                    albums: [{ id: "default", name: "默认壁纸", photos: [...DEFAULT_CONFIG.gallery] }],
+                  })
+                }
               >
                 恢复默认壁纸
               </button>
             </div>
           </div>
           <p className="settings-hint">
-            支持 jpg / png / webp（含 gif / svg），无大小限制；上传后自动出现在「图片墙」页面。
+            分类自定义，每个分类图片数量不限（jpg / png / webp，自动压缩上传）。
           </p>
-          <input
-            ref={galleryFileRef}
-            type="file"
-            multiple
-            accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
-            onChange={(e) => void onUploadGallery(e)}
-            style={{ display: "none" }}
-          />
-          {cfg.gallery.length > 0 ? (
-            <div className="gallery-manage-grid">
-              {cfg.gallery.map((it, i) => (
-                <div key={`${it.src}-${i}`} className="gallery-manage-item">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={it.src} alt={it.title} />
-                  <div className="gallery-manage-info">
-                    <span className="gallery-manage-title" title={it.title}>
-                      {it.title}
-                    </span>
-                    <button
-                      className="gallery-manage-del"
-                      onClick={() => removeGalleryItem(i)}
-                      title="从图片墙移除"
-                    >
-                      ✕
-                    </button>
+
+          {cfg.albums.length === 0 ? (
+            <p className="settings-hint">还没有分类，点「新建分类」开始吧～</p>
+          ) : (
+            <div className="album-manage">
+              {cfg.albums.map((album) => (
+                <div key={album.id} className="album-manage-card">
+                  <div className="album-manage-head">
+                    <b>{album.name}</b>
+                    <span className="album-manage-count">{album.photos.length} 张</span>
+                    <div className="cover-upload-actions">
+                      <button className="btn small" onClick={() => renameAlbum(album.id)}>
+                        改名
+                      </button>
+                      <button
+                        className="btn small"
+                        onClick={() => albumFileRefs.current?.[album.id]?.click()}
+                        disabled={uploading === "gallery"}
+                      >
+                        {uploading === "gallery" ? "上传中…" : "＋ 添加图片"}
+                      </button>
+                      <button
+                        className="btn small danger"
+                        onClick={() => removeAlbum(album.id)}
+                      >
+                        删除分类
+                      </button>
+                    </div>
+                    <input
+                      ref={(el) => {
+                        if (el) albumFileRefs.current[album.id] = el;
+                      }}
+                      type="file"
+                      multiple
+                      accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
+                      onChange={(e) => void onUploadGallery(e, album.id)}
+                      style={{ display: "none" }}
+                    />
                   </div>
+
+                  {album.photos.length > 0 ? (
+                    <div className="gallery-manage-grid">
+                      {album.photos.map((it, i) => (
+                        <div key={`${it.src}-${i}`} className="gallery-manage-item">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={it.src} alt={it.title} />
+                          <div className="gallery-manage-info">
+                            <span className="gallery-manage-title" title={it.title}>
+                              {it.title}
+                            </span>
+                            <button
+                              className="gallery-manage-del"
+                              onClick={() => removeGalleryItem(album.id, i)}
+                              title="从分类移除"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="settings-hint">空分类，点「添加图片」上传吧～</p>
+                  )}
                 </div>
               ))}
             </div>
-          ) : (
-            <p className="settings-hint">图片墙为空，点上方按钮上传吧～</p>
           )}
         </section>
       </div>

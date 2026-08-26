@@ -22,6 +22,7 @@ export async function PUT(req: Request) {
     overlay: typeof body.overlay === "number" ? body.overlay : undefined,
     avatar: typeof body.avatar === "string" ? body.avatar : undefined,
     gallery: Array.isArray(body.gallery) ? body.gallery : undefined,
+    albums: Array.isArray(body.albums) ? body.albums : undefined,
   });
   return NextResponse.json({ config });
 }

@@ -1,10 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { WallItem } from "@/lib/types";
-
-/** 每个相册最多几张 */
-const PER_ALBUM = 6;
+import type { Album } from "@/lib/types";
 
 /** 相册封面堆叠参数（参考站 AlbumCard） */
 const STACK = [
@@ -16,39 +13,30 @@ const STACK = [
 /** 拍立得轻微旋转 */
 const rotOf = (i: number) => (((i * 37) % 5) - 2) * 0.9;
 
-export default function GalleryWall({ items }: { items: WallItem[] }) {
+/** 图片墙：分类（相册）网格，点击展开看照片 */
+export default function GalleryWall({ albums }: { albums: Album[] }) {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [lightbox, setLightbox] = useState<{ album: number; photo: number } | null>(null);
 
-  // 自动分组为相册
-  const albums = useMemo(() => {
-    const list: WallItem[][] = [];
-    for (let i = 0; i < items.length; i += PER_ALBUM) {
-      list.push(items.slice(i, i + PER_ALBUM));
-    }
-    return list;
-  }, [items]);
+  const openLightbox = (album: number, photo: number) => setLightbox({ album, photo });
+  const closeLightbox = () => setLightbox(null);
+  const lightboxPhotos = lightbox ? albums[lightbox.album]?.photos : null;
+  const lightboxIndex = lightbox ? lightbox.photo : 0;
 
   if (albums.length === 0) {
     return <div className="empty glass">图片墙还是空的，去后台设置上传壁纸吧～</div>;
   }
-
-  const openLightbox = (album: number, photo: number) => setLightbox({ album, photo });
-  const closeLightbox = () => setLightbox(null);
-  const lightboxPhotos = lightbox ? albums[lightbox.album] : null;
-  const lightboxIndex = lightbox ? lightbox.photo : 0;
 
   return (
     <div>
       <div className="album-grid">
         {albums.map((album, ai) => {
           const isOpen = expanded === ai;
-          const covers = album.slice(0, 3).reverse();
-          const title = album[0]?.title || `相册 ${ai + 1}`;
+          const covers = album.photos.slice(0, 3).reverse();
 
           return (
             <figure
-              key={`${album[0]?.src}-${ai}`}
+              key={album.id}
               className={`album-card glass ${isOpen ? "open" : ""}`}
               onClick={() => setExpanded(isOpen ? null : ai)}
             >
@@ -70,19 +58,19 @@ export default function GalleryWall({ items }: { items: WallItem[] }) {
                     </div>
                   );
                 })}
-                <span className="album-count">{album.length} 张</span>
+                <span className="album-count">{album.photos.length} 张</span>
               </div>
 
-              {/* 相册信息 */}
+              {/* 分类信息 */}
               <div className="album-info">
-                <h3>{title}</h3>
-                <p>{album.length} 张壁纸 · 点击展开</p>
+                <h3>{album.name}</h3>
+                <p>{album.photos.length} 张壁纸 · 点击展开</p>
               </div>
 
               {/* 展开的照片网格（拍立得） */}
               {isOpen && (
                 <div className="album-photos" onClick={(e) => e.stopPropagation()}>
-                  {album.map((it, pi) => (
+                  {album.photos.map((it, pi) => (
                     <figure
                       key={it.src + pi}
                       className="gallery-tile polaroid"

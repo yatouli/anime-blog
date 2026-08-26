@@ -11,6 +11,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   avatar: "",
   // 图片墙默认为内置壁纸（后台可增删自定义图片）
   gallery,
+  albums: [],
 };
 
 /** 后台可选渐变预设 */

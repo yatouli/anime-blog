@@ -3949,6 +3949,39 @@ body.music-playing .petal {
   color: #ff5c7a;
 }
 
+/* 图片墙分类管理 */
+.album-manage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.album-manage-card {
+  border: 1px dashed var(--glass-border);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.album-manage-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.album-manage-head b {
+  font-size: 15px;
+}
+
+.album-manage-count {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-right: auto;
+}
+
 /* ============ 阅读量 ============ */
 .post-views {
   color: var(--text-dim);

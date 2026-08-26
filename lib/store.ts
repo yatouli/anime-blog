@@ -328,6 +328,25 @@ export async function saveConfig(input: Partial<SiteConfig>): Promise<SiteConfig
         h: Math.max(1, Math.min(8, Number(it.h) || 4)),
       }));
   }
+  if (merged.albums !== undefined) {
+    // 图片墙分类：名称自定义，每分类图片数量不限
+    const list = Array.isArray(merged.albums) ? merged.albums : [];
+    next.albums = list
+      .filter((a) => a && typeof a.name === "string" && a.name.trim())
+      .slice(0, 20)
+      .map((a) => ({
+        id: String(a.id || `album-${Math.random().toString(36).slice(2, 8)}`),
+        name: a.name.trim().slice(0, 30) || "未命名分类",
+        photos: (Array.isArray(a.photos) ? a.photos : [])
+          .filter((it) => it && typeof it.src === "string" && it.src.trim())
+          .map((it) => ({
+            src: it.src.trim().slice(0, 500),
+            title: (it.title || "").toString().trim().slice(0, 50) || "未命名",
+            w: Math.max(1, Math.min(8, Number(it.w) || 3)),
+            h: Math.max(1, Math.min(8, Number(it.h) || 4)),
+          })),
+      }));
+  }
   await db.execute({
     sql: `INSERT INTO config (id, value) VALUES (1, ?)
           ON CONFLICT(id) DO UPDATE SET value = excluded.value`,

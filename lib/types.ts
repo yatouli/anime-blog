@@ -69,6 +69,8 @@ export interface SiteConfig {
   avatar: string;
   /** 图片墙：默认为内置壁纸，可在后台增删自定义图片 */
   gallery: WallItem[];
+  /** 图片墙分类（相册）；为空时页面回退用 gallery 作为单一分类 */
+  albums: Album[];
 }
 
 export interface MusicSong {
@@ -90,4 +92,11 @@ export interface WallItem {
   title: string;
   w: number;
   h: number;
+}
+
+/** 图片墙分类（相册）：名称 + 不限数量的图片 */
+export interface Album {
+  id: string;
+  name: string;
+  photos: WallItem[];
 }
