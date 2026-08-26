@@ -1211,7 +1211,7 @@ button {
   }
 }
 
-/* ============ 相册布局（参考站 AlbumCard） ============ */
+/* ============ 相册布局（参考站 AlbumCard：无玻璃背景，直接照片堆叠） ============ */
 .album-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -1222,12 +1222,14 @@ button {
   padding: 18px 18px 16px;
   cursor: pointer;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 24px;
+  background: transparent;
+  border: none;
+  transition: transform 0.3s ease;
 }
 
 .album-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
+  transform: translateY(-3px);
 }
 
 .album-card.open {
@@ -1295,7 +1297,6 @@ button {
 .album-photos {
   margin-top: 18px;
   padding-top: 18px;
-  border-top: 1px dashed var(--glass-border);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 24px;

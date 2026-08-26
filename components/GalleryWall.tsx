@@ -24,7 +24,7 @@ export default function GalleryWall({ albums }: { albums: Album[] }) {
   const lightboxIndex = lightbox ? lightbox.photo : 0;
 
   if (albums.length === 0) {
-    return <div className="empty glass">图片墙还是空的，去后台设置上传壁纸吧～</div>;
+    return <div className="empty">图片墙还是空的，去后台设置上传壁纸吧～</div>;
   }
 
   return (
@@ -37,7 +37,7 @@ export default function GalleryWall({ albums }: { albums: Album[] }) {
           return (
             <figure
               key={album.id}
-              className={`album-card glass ${isOpen ? "open" : ""}`}
+              className={`album-card ${isOpen ? "open" : ""}`}
               onClick={() => setExpanded(isOpen ? null : ai)}
             >
               {/* 封面：堆叠照片 */}
