@@ -11,10 +11,11 @@ const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 const KW_REF = "https://www.kuwo.cn/";
 
-/** 简单的 HTML 实体解码（酷我搜索返回 &nbsp; 等实体） */
+/** 简单的 HTML 实体解码（酷我搜索返回 &nbsp;、\u0026 等实体） */
 function decodeHtml(s: string): string {
   return s
     .replace(/&nbsp;/g, " ")
+    .replace(/\\u0026/g, "&")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
@@ -50,7 +51,7 @@ async function kuwoSearch(keywords: string, limit = 12): Promise<MusicSong[]> {
   const text = await res.text();
   // 酷我返回 Python 风格单引号 JSON，转成标准 JSON 解析
   const j = JSON.parse(text.replace(/'/g, '"')) as KuwoRaw;
-  const BAD = /KTV|伴奏|铃声|DJ|纯音乐|Remix|混音|Live|现场|演唱会|翻唱|完整版|慢摇|串烧/i;
+  const BAD = /KTV|伴奏|铃声|DJ|纯音乐|Remix|混音|Live|现场|演唱会|翻唱|完整版|慢摇|串烧|片段/i;
   const items = (j.abslist || [])
     .filter((s) => s.MUSICRID && s.SONGNAME)
     .filter((s) => s.payInfo?.cannotOnlinePlay !== "1")
