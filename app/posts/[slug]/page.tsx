@@ -18,7 +18,27 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
-  return { title: post?.title ?? "文章不存在" };
+  if (!post) return { title: "文章不存在" };
+  const desc = post.excerpt || post.title;
+  const image = post.coverImage || "/icons/icon-512.png";
+  return {
+    title: post.title,
+    description: desc,
+    openGraph: {
+      type: "article",
+      title: post.title,
+      description: desc,
+      url: `/posts/${post.slug}`,
+      publishedTime: post.date,
+      images: [{ url: image, alt: post.title }],
+    },
+    twitter: {
+      card: post.coverImage ? "summary_large_image" : "summary",
+      title: post.title,
+      description: desc,
+      images: [image],
+    },
+  };
 }
 
 export default async function PostPage({

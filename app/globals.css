@@ -966,34 +966,30 @@ button {
   touch-action: pan-y;
 }
 
-.photo-carousel-slide {
+.photo-carousel-img {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  transition: opacity 1.2s ease;
-  z-index: 1;
-  display: block;
-}
-
-.photo-carousel-slide.active {
-  opacity: 1;
-  z-index: 2;
-}
-
-.photo-carousel-slide img {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover;
   display: block;
   max-width: none;
+  animation: photo-fade-in 1.2s ease;
   transition: transform 1s ease;
   will-change: transform;
 }
 
+@keyframes photo-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* 悬停缓慢放大，同参考站 group-hover:scale-105 */
-.photo-carousel:hover .photo-carousel-slide.active img {
+.photo-carousel:hover .photo-carousel-img {
   transform: scale(1.05);
 }
 
@@ -2687,6 +2683,44 @@ body.music-playing .petal {
 
 .mp-queue-head button:hover {
   color: #ff5c7a;
+}
+
+/* 歌词抽屉 */
+.mp-lyric {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mp-lyric-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 4px 18px 18px;
+  scrollbar-width: thin;
+}
+
+.mp-lyric-line {
+  padding: 7px 8px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-dim);
+  border-radius: 8px;
+  transition: color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+  text-align: center;
+}
+
+.mp-lyric-line.on {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 15px;
+  transform: scale(1.03);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+@media (max-width: 768px) {
+  .mp-lyric-scroll {
+    max-height: 46vh;
+  }
 }
 
 /* ============ 后台 ============ */

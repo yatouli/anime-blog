@@ -30,6 +30,16 @@ function Carousel({ items }: { items: WallItem[] }) {
     return () => window.clearInterval(timer);
   }, [n]);
 
+  // 预加载下一张，切图时不重新请求
+  useEffect(() => {
+    if (n < 2) return;
+    const next = items[(idx + 1) % n];
+    if (next?.src) {
+      const img = new Image();
+      img.src = next.src;
+    }
+  }, [idx, items, n]);
+
   const go = (dir: number) => setIdx((i) => (i + dir + n) % n);
 
   function handlePointerDown(clientX: number) {
@@ -64,10 +74,12 @@ function Carousel({ items }: { items: WallItem[] }) {
   }
 
   if (n === 0) return <p className="home-card-empty">还没有壁纸～</p>;
+  const cur = items[idx];
 
   return (
     <div
       className="photo-carousel"
+      style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}
       onClick={handleClick}
       onPointerDown={(e) => handlePointerDown(e.clientX)}
       onPointerMove={(e) => handlePointerMove(e.clientX)}
@@ -75,24 +87,18 @@ function Carousel({ items }: { items: WallItem[] }) {
       onPointerCancel={handlePointerUp}
       onPointerLeave={handlePointerUp}
     >
-      {items.map((it, i) => (
-        <div
-          key={it.src + i}
-          className={`photo-carousel-slide ${i === idx ? "active" : ""}`}
-          style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={it.src}
-            alt={it.title}
-            loading="lazy"
-            draggable={false}
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.display = "none";
-            }}
-          />
-        </div>
-      ))}
+      {/* 只渲染当前一张 + 预加载下一张，避免 12 张图同时加载 */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        key={cur.src + idx}
+        src={cur.src}
+        alt={cur.title}
+        className="photo-carousel-img"
+        draggable={false}
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).style.display = "none";
+        }}
+      />
 
       {n > 1 && (
         <div className="carousel-dots">

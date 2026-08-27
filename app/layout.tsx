@@ -12,6 +12,7 @@ import PwaRegister from "@/components/PwaRegister";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(site.url),
   title: {
     default: `${site.name} · ${site.slogan}`,
     template: `%s · ${site.name}`,
@@ -26,6 +27,21 @@ export const metadata: Metadata = {
     types: {
       "application/rss+xml": "/rss.xml",
     },
+  },
+  openGraph: {
+    type: "website",
+    locale: "zh_CN",
+    url: "/",
+    siteName: site.name,
+    title: `${site.name} · ${site.slogan}`,
+    description: site.description,
+    images: [{ url: "/icons/icon-512.png", width: 512, height: 512, alt: site.name }],
+  },
+  twitter: {
+    card: "summary",
+    title: `${site.name} · ${site.slogan}`,
+    description: site.description,
+    images: ["/icons/icon-512.png"],
   },
 };
 

@@ -19,7 +19,7 @@ export default function MusicPlayer() {
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.8);
-  const [drawer, setDrawer] = useState<"none" | "queue" | "search">("none");
+  const [drawer, setDrawer] = useState<"none" | "queue" | "search" | "lyric">("none");
   const [keyword, setKeyword] = useState("");
   const [results, setResults] = useState<MusicSong[]>([]);
   const [searching, setSearching] = useState(false);
@@ -27,6 +27,8 @@ export default function MusicPlayer() {
   const [seekPreview, setSeekPreview] = useState<number | null>(null);
   const seekRef = useRef<{ dragging: boolean }>({ dragging: false });
   const [isPreview, setIsPreview] = useState(false);
+  const [lyrics, setLyrics] = useState<{ t: number; text: string }[]>([]);
+  const lyricBoxRef = useRef<HTMLDivElement | null>(null);
 
   // 播放状态同步到 <body>：背景光斑随音乐脉动
   useEffect(() => {
@@ -72,6 +74,13 @@ export default function MusicPlayer() {
         return;
       }
       setError("");
+      // 拉歌词（LRCLIB，按歌名+歌手，任何音源都可用；无结果则空）
+      fetch(
+        `/api/music/lyric?name=${encodeURIComponent(song.name)}&artist=${encodeURIComponent(song.artist)}`
+      )
+        .then((r) => r.json())
+        .then((d) => setLyrics(Array.isArray(d.lines) ? d.lines : []))
+        .catch(() => setLyrics([]));
       const audio = audioRef.current;
       if (!audio) return;
       audio.src = url;
@@ -217,6 +226,26 @@ export default function MusicPlayer() {
       ? (seekPreview !== null ? seekPreview : time) / duration
       : 0;
 
+  // 当前高亮歌词行（最后一条 t <= time 的行）
+  let activeLyric = -1;
+  for (let i = 0; i < lyrics.length; i++) {
+    if (lyrics[i].t <= time) activeLyric = i;
+    else break;
+  }
+
+  // 歌词自动滚动到当前行
+  useEffect(() => {
+    const el = lyricBoxRef.current;
+    if (!el || activeLyric < 0) return;
+    const line = el.children[activeLyric] as HTMLElement | undefined;
+    if (line) {
+      el.scrollTo({
+        top: line.offsetTop - el.clientHeight / 2 + line.clientHeight / 2,
+        behavior: "smooth",
+      });
+    }
+  }, [activeLyric]);
+
   const cover = current?.albumPic || "";
   const barWidth = `${(progressRatio * 100).toFixed(2)}%`;
 
@@ -338,6 +367,13 @@ export default function MusicPlayer() {
           >
             🔍
           </button>
+          <button
+            className={`mp-btn ${drawer === "lyric" ? "on" : ""}`}
+            onClick={() => setDrawer(drawer === "lyric" ? "none" : "lyric")}
+            title="歌词"
+          >
+            词
+          </button>
         </div>
 
         {/* 抽屉 */}
@@ -383,6 +419,24 @@ export default function MusicPlayer() {
                     </li>
                   )}
                 </ul>
+              </div>
+            ) : drawer === "lyric" ? (
+              <div className="mp-lyric">
+                <div className="mp-queue-head">歌词</div>
+                <div className="mp-lyric-scroll" ref={lyricBoxRef}>
+                  {lyrics.length === 0 ? (
+                    <p className="mp-empty">暂无歌词～</p>
+                  ) : (
+                    lyrics.map((l, i) => (
+                      <div
+                        key={i}
+                        className={`mp-lyric-line ${i === activeLyric ? "on" : ""}`}
+                      >
+                        {l.text}
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             ) : (
               <div className="mp-queue">

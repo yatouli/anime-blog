@@ -6,6 +6,8 @@ export const site = {
   shortName: "星野",
   slogan: "在代码与二次元之间，收藏每一个心动瞬间",
   description: "一个二次元风格的毛玻璃博客：写文章、听音乐、晒壁纸、交朋友。",
+  /** 站点绝对地址（用于 SEO 分享卡片 / sitemap / RSS） */
+  url: "https://blog.xiaogao.dpdns.org",
   avatar: "🌸",
   author: "星野酱",
   email: "3996961083@qq.com",

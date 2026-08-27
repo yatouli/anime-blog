@@ -126,6 +126,54 @@ async function itunesSearch(keywords: string, limit = 12): Promise<MusicSong[]> 
 
 /* ---------------- 对外接口 ---------------- */
 
+export interface LyricLine {
+  /** 时间（秒） */
+  t: number;
+  text: string;
+}
+
+/** 解析 LRC 歌词（去掉行内逐字 <mm:ss.xx> 标签），支持一行多个时间戳 */
+function parseLrc(lrc: string): LyricLine[] {
+  const out: LyricLine[] = [];
+  const tsRe = /\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g;
+  for (const raw of lrc.split(/\r?\n/)) {
+    const stamps: number[] = [];
+    let m: RegExpExecArray | null;
+    tsRe.lastIndex = 0;
+    while ((m = tsRe.exec(raw))) {
+      const min = Number(m[1]);
+      const sec = Number(m[2]);
+      const frac = m[3] ? Number(m[3].padEnd(3, "0")) / 1000 : 0;
+      stamps.push(min * 60 + sec + frac);
+    }
+    if (stamps.length === 0) continue;
+    const text = raw
+      .replace(/\[[^\]]*\]/g, "")
+      .replace(/<[^>]*>/g, "")
+      .trim();
+    if (!text) continue;
+    for (const t of stamps) out.push({ t, text });
+  }
+  return out.sort((a, b) => a.t - b.t);
+}
+
+/** 歌词：LRCLIB（免费开源，按歌名+歌手查同步歌词，全球可用；无结果返回空数组） */
+export async function lyric(name: string, artist: string): Promise<LyricLine[]> {
+  const res = await fetch(
+    `https://lrclib.net/api/search?track_name=${encodeURIComponent(
+      name
+    )}&artist_name=${encodeURIComponent(artist)}`,
+    {
+      headers: { "User-Agent": "anime-blog/1.0 (music player)" },
+      signal: AbortSignal.timeout(10000),
+    }
+  );
+  if (!res.ok) throw new Error(`lrclib ${res.status}`);
+  const list = (await res.json()) as { syncedLyrics?: string }[];
+  const best = list.find((r) => r.syncedLyrics);
+  return best?.syncedLyrics ? parseLrc(best.syncedLyrics) : [];
+}
+
 /**
  * 搜索歌曲：
  * - source = "itunes"：只走 iTunes（用于 VIP/受限歌曲的试听兜底）

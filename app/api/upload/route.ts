@@ -31,22 +31,49 @@ export async function POST(req: Request) {
 
   const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
+  // 读入内存；对超大图做服务端兜底压缩（防止超大原图入库）
+  let buf = Buffer.from(await file.arrayBuffer());
+  let outName = name;
+  let outType = file.type || "";
+
+  if (ext !== "svg" && ext !== "gif") {
+    try {
+      const sharp = (await import("sharp")).default;
+      const meta = await sharp(buf).metadata();
+      const tooBig =
+        buf.length > 1024 * 1024 ||
+        (meta.width || 0) > 2048 ||
+        (meta.height || 0) > 2048;
+      if (tooBig && (meta.width || 0) > 0) {
+        const fmt = ext === "png" ? "webp" : ext === "webp" ? "webp" : "jpeg";
+        buf = await sharp(buf)
+          .rotate()
+          .resize(2048, 2048, { fit: "inside", withoutEnlargement: true })
+          .toFormat(fmt, { quality: 82 })
+          .toBuffer();
+        outName = name.replace(/\.[^.]+$/, `.${fmt === "webp" ? "webp" : "jpg"}`);
+        outType = fmt === "webp" ? "image/webp" : "image/jpeg";
+      }
+    } catch {
+      /* sharp 失败（如损坏文件）则原样上传 */
+    }
+  }
+
   // —— Vercel Blob 模式（对象存储，serverless 可持久）——
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     const { put } = await import("@vercel/blob");
-    await put(`uploads/${name}`, file, {
+    await put(`uploads/${outName}`, buf, {
       access: "public",
-      contentType: file.type || undefined,
+      contentType: outType || undefined,
     });
     // 返回本站代理路径，图片经 CF → Vercel 中转加载（国内可达）
-    return NextResponse.json({ url: `/api/blob/${name}` }, { status: 201 });
+    return NextResponse.json({ url: `/api/blob/${outName}` }, { status: 201 });
   }
 
   // —— 本地文件模式 ——
   const dir = path.join(process.cwd(), "data", "uploads");
-  const buf = Buffer.from(await file.arrayBuffer());
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, name), buf);
+  fs.writeFileSync(path.join(dir, outName), buf);
 
-  return NextResponse.json({ url: `/api/files/${name}` }, { status: 201 });
+  return NextResponse.json({ url: `/api/files/${outName}` }, { status: 201 });
 }
