@@ -267,6 +267,8 @@ export async function getCommentsByPost(postId: string): Promise<Comment[]> {
     name: String(r.name),
     content: String(r.content),
     createdAt: String(r.createdAt),
+    parentId: r.parentId != null ? String(r.parentId) : undefined,
+    replyTo: r.replyTo != null ? String(r.replyTo) : undefined,
   }));
 }
 
@@ -282,6 +284,8 @@ export async function getRecentComments(limit = 5): Promise<Comment[]> {
     name: String(r.name),
     content: String(r.content),
     createdAt: String(r.createdAt),
+    parentId: r.parentId != null ? String(r.parentId) : undefined,
+    replyTo: r.replyTo != null ? String(r.replyTo) : undefined,
   }));
 }
 
@@ -300,10 +304,21 @@ export async function addComment(input: CommentInput): Promise<Comment> {
     name: input.name.trim().slice(0, 30),
     content: input.content.trim().slice(0, 1000),
     createdAt: new Date().toISOString(),
+    parentId: input.parentId?.trim().slice(0, 64) || undefined,
+    replyTo: input.replyTo?.trim().slice(0, 30) || undefined,
   };
   await db.execute({
-    sql: `INSERT INTO comments (id, postId, name, content, createdAt) VALUES (?, ?, ?, ?, ?)`,
-    args: [comment.id, comment.postId, comment.name, comment.content, comment.createdAt],
+    sql: `INSERT INTO comments (id, postId, name, content, createdAt, parentId, replyTo)
+          VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    args: [
+      comment.id,
+      comment.postId,
+      comment.name,
+      comment.content,
+      comment.createdAt,
+      comment.parentId ?? null,
+      comment.replyTo ?? null,
+    ],
   });
   return comment;
 }

@@ -950,6 +950,10 @@ button {
   text-overflow: ellipsis;
 }
 
+.home-comment-reply {
+  color: var(--accent-2);
+}
+
 /* 图片墙轮播预览（参照 boke.hiromu.top：玻璃圆角卡 + 交叉渐隐 + 悬停放大 + 右下胶囊点） */
 .photo-carousel {
   position: relative;
@@ -3632,6 +3636,12 @@ body.music-playing .petal {
 
 .comment-item {
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.comment-row {
+  display: flex;
   gap: 12px;
 }
 
@@ -3670,12 +3680,93 @@ body.music-playing .petal {
   color: var(--text-dim);
 }
 
+.comment-replyto {
+  font-size: 12px;
+  color: var(--accent-2);
+  margin-bottom: 4px;
+}
+
 .comment-content {
   margin: 0;
   font-size: 14px;
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.comment-reply-btn {
+  margin-top: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 12.5px;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.comment-reply-btn:hover {
+  color: var(--accent-2);
+}
+
+.comment-reply-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: 50px;
+}
+
+.comment-reply-form input,
+.comment-reply-form textarea {
+  padding: 9px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text);
+  font-size: 13.5px;
+  font-family: inherit;
+  outline: none;
+  resize: vertical;
+}
+
+.comment-reply-form input:focus,
+.comment-reply-form textarea:focus {
+  border-color: var(--accent-2);
+}
+
+.comment-reply-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.comment-reply-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.comment-cancel {
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.comment-cancel:hover {
+  color: var(--text);
+}
+
+.comment-children {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .comment-empty {
@@ -4413,6 +4504,10 @@ body.music-playing .petal {
   .comment-head {
     flex-direction: column;
     gap: 2px;
+  }
+
+  .comment-reply-form {
+    margin-left: 0;
   }
 
   /* 页脚 */

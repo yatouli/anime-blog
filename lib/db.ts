@@ -97,7 +97,9 @@ CREATE TABLE IF NOT EXISTS comments (
   postId TEXT NOT NULL,
   name TEXT NOT NULL,
   content TEXT NOT NULL,
-  createdAt TEXT NOT NULL
+  createdAt TEXT NOT NULL,
+  parentId TEXT,
+  replyTo TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(postId);
 
@@ -186,6 +188,16 @@ async function migrate(): Promise<void> {
   const cols = info.rows.map((r) => String(r.name));
   if (!cols.includes("views")) {
     await db.execute(`ALTER TABLE posts ADD COLUMN views INTEGER NOT NULL DEFAULT 0`);
+  }
+
+  // 评论回复功能：parentId / replyTo 列
+  const cinfo = await db.execute(`PRAGMA table_info(comments)`);
+  const ccols = cinfo.rows.map((r) => String(r.name));
+  if (!ccols.includes("parentId")) {
+    await db.execute(`ALTER TABLE comments ADD COLUMN parentId TEXT`);
+  }
+  if (!ccols.includes("replyTo")) {
+    await db.execute(`ALTER TABLE comments ADD COLUMN replyTo TEXT`);
   }
 }
 

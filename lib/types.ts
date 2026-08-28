@@ -46,12 +46,18 @@ export interface Comment {
   name: string;
   content: string;
   createdAt: string;
+  /** 回复的父评论 id（顶级评论为空） */
+  parentId?: string;
+  /** 被回复的昵称（渲染时显示 回复 @xx） */
+  replyTo?: string;
 }
 
 export interface CommentInput {
   postId: string;
   name: string;
   content: string;
+  parentId?: string;
+  replyTo?: string;
 }
 
 export interface SiteConfig {

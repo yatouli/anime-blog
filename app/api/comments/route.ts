@@ -15,6 +15,8 @@ export async function POST(req: Request) {
     postId?: string;
     name?: string;
     content?: string;
+    parentId?: string;
+    replyTo?: string;
   };
   const name = body.name?.trim() || "";
   const content = body.content?.trim() || "";
@@ -31,6 +33,8 @@ export async function POST(req: Request) {
     postId: body.postId,
     name,
     content,
+    parentId: body.parentId || undefined,
+    replyTo: body.replyTo || undefined,
   });
   return NextResponse.json({ comment }, { status: 201 });
 }

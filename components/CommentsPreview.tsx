@@ -22,7 +22,15 @@ export default async function CommentsPreview() {
               <span className="home-comment-avatar">{c.name.slice(0, 1).toUpperCase()}</span>
               <div className="home-comment-body">
                 <b>{c.name}</b>
-                <p>{c.content}</p>
+                <p>
+                  {c.replyTo ? (
+                    <>
+                      <span className="home-comment-reply">回复 @{c.replyTo}</span> {c.content}
+                    </>
+                  ) : (
+                    c.content
+                  )}
+                </p>
               </div>
             </li>
           ))}
