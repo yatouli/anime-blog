@@ -2,7 +2,7 @@
 /**
  * 从一张图片生成站点图标（favicon / PWA / 分享图）：
  *   node scripts/icons-from-image.mjs [输入图] [输出目录]
- * 默认输入 public/icons/atori2.png，输出 public/icons/icon-192.png + icon-512.png。
+ * 默认输入 public/icons/atori2.png，输出 public/icons/favicon-192.png + favicon-512.png。
  * 依赖 sharp（已在项目依赖中）。
  */
 import sharp from "sharp";
@@ -22,7 +22,7 @@ const base = sharp(input);
 
 // 保持透明、居中缩放为正方形
 async function make(size) {
-  const out = path.join(outDir, `icon-${size}.png`);
+  const out = path.join(outDir, `favicon-${size}.png`);
   await base
     .clone()
     .resize(size, size, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })

@@ -20,7 +20,7 @@ export async function generateMetadata({
   const post = await getPostBySlug(slug);
   if (!post) return { title: "文章不存在" };
   const desc = post.excerpt || post.title;
-  const image = post.coverImage || "/icons/icon-512.png";
+  const image = post.coverImage || "/icons/favicon-512.png";
   return {
     title: post.title,
     description: desc,

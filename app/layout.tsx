@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   description: site.description,
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [{ url: "/icons/icon-192.png", type: "image/png" }],
-    apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    icon: [{ url: "/icons/favicon-192.png", type: "image/png" }],
+    apple: [{ url: "/icons/favicon-192.png", sizes: "192x192", type: "image/png" }],
   },
   alternates: {
     types: {
@@ -35,13 +35,13 @@ export const metadata: Metadata = {
     siteName: site.name,
     title: `${site.name} · ${site.slogan}`,
     description: site.description,
-    images: [{ url: "/icons/icon-512.png", width: 512, height: 512, alt: site.name }],
+    images: [{ url: "/icons/favicon-512.png", width: 512, height: 512, alt: site.name }],
   },
   twitter: {
     card: "summary",
     title: `${site.name} · ${site.slogan}`,
     description: site.description,
-    images: ["/icons/icon-512.png"],
+    images: ["/icons/favicon-512.png"],
   },
 };
 
